@@ -4,6 +4,7 @@ import CasesTable  from "./components/CasesTable";
 import SubmitCase  from "./components/SubmitCase";
 import MyCase      from "./components/MyCase";
 import FirmTracker from "./components/FirmTracker";
+import Evidence    from "./components/Evidence";
 import { T } from "./components/shared";
 
 const TABS = [
@@ -12,6 +13,7 @@ const TABS = [
   { id: "submit",    label: "Submit Case" },
   { id: "mycase",    label: "My Case" },
   { id: "firms",     label: "Firms" },
+  { id: "evidence",  label: "Evidence" },
 ];
 
 export default function App() {
@@ -72,6 +74,7 @@ export default function App() {
         {tab === "submit"    && <SubmitCase />}
         {tab === "mycase"    && <MyCase />}
         {tab === "firms"     && <FirmTracker />}
+        {tab === "evidence"  && <Evidence />}
       </div>
     </div>
   );

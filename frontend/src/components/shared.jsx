@@ -94,13 +94,14 @@ export function Badge({ text, color }) {
   );
 }
 
-export function Input({ value, onChange, onKeyDown, placeholder, style }) {
+export function Input({ value, onChange, onKeyDown, placeholder, style, ...rest }) {
   return (
     <input
       value={value}
       onChange={onChange}
       onKeyDown={onKeyDown}
       placeholder={placeholder}
+      {...rest}
       style={{
         background: T.inputBg,
         border: `1px solid ${T.border}`,

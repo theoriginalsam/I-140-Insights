@@ -1,4 +1,6 @@
 import asyncio
+import hmac as _hmac
+import hashlib
 import logging
 import os
 import re
@@ -18,7 +20,7 @@ from sqlalchemy import text
 
 from auth import token_manager, API_URL
 from database import engine, SessionLocal, Base
-from models import Case, CaseStatusHistory, ScrapeRun
+from models import Case, CaseStatusHistory, ScrapeRun, UserProfile
 from scraper import CaseScraper
 
 logging.basicConfig(level=logging.INFO)
@@ -110,6 +112,76 @@ class CaseSubmit(BaseModel):
     premium_processing: bool = False
     law_firm: Optional[str] = None
     service_center: Optional[str] = None
+
+
+class ProfileSubmit(BaseModel):
+    verify_token: str                   # signed token from /api/profiles/verify
+    outcome: str                        # approved | rfe | pending | denied
+    degree: str                         # PhD | Master's | Bachelor's | Other
+    field: str
+    citations: Optional[int] = None
+    publications: Optional[int] = None
+    reviews: Optional[int] = None
+    patents: Optional[int] = None
+    years_experience: Optional[int] = None
+    law_firm: Optional[str] = None
+    had_rfe: bool = False
+    rfe_reason: Optional[str] = None
+    rfe_response_outcome: Optional[str] = None  # approved | denied | pending
+
+
+class ReceiptVerify(BaseModel):
+    receipt_number: str
+
+
+# Approximate USCIS published processing time range in calendar days (standard)
+PROCESSING_TIMES: dict = {
+    ("IOE", "NIW",   False): (180, 690),
+    ("IOE", "EB-1A", False): (180, 690),
+    ("NSC", "NIW",   False): (120, 450),
+    ("NSC", "EB-1A", False): (120, 450),
+    ("TSC", "NIW",   False): (120, 365),
+    ("TSC", "EB-1A", False): (120, 365),
+    ("LIN", "NIW",   False): (120, 365),
+    ("LIN", "EB-1A", False): (120, 365),
+    ("WAC", "NIW",   False): (120, 365),
+    ("WAC", "EB-1A", False): (120, 365),
+}
+PREMIUM_MAX_DAYS = 45
+PREMIUM_MIN_DAYS = 15
+
+_VERIFY_SECRET = os.getenv("ADMIN_KEY", "changeme123") + "-profile-verify"
+_VERIFY_TTL = 1800  # 30 minutes
+
+
+def _make_verify_token(receipt: str, category: str, sc: str, pp: bool) -> str:
+    ts = str(int(time.time()))
+    payload = "|".join([receipt.upper(), category.upper(), sc.upper(), "1" if pp else "0", ts])
+    sig = _hmac.new(_VERIFY_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()[:20]
+    return f"{payload}|{sig}"
+
+
+def _validate_verify_token(token: str) -> dict | None:
+    parts = token.split("|")
+    if len(parts) != 6:
+        return None
+    receipt, category, sc, pp_str, ts_str, sig = parts
+    try:
+        ts = int(ts_str)
+    except ValueError:
+        return None
+    if time.time() - ts > _VERIFY_TTL:
+        return None
+    payload = "|".join([receipt, category, sc, pp_str, ts_str])
+    expected = _hmac.new(_VERIFY_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()[:20]
+    if not _hmac.compare_digest(sig, expected):
+        return None
+    return {
+        "receipt": receipt,
+        "category": category,
+        "service_center": sc,
+        "premium_processing": pp_str == "1",
+    }
 
 
 # ---------- Stats ----------
@@ -488,6 +560,45 @@ def get_my_case(receipt_number: str):
             WHERE receipt_number LIKE :prefix
         """), {"prefix": f"{prefix}%"}).fetchone()
 
+        # Percentile rank: what % of approved cases in same SC+category+PP took fewer days
+        percentile_info = None
+        pp = bool(case.premium_processing)
+        if age_days is not None and case.service_center and case.category:
+            pct_row = db.execute(text("""
+                SELECT
+                    COUNT(*) AS total_approved,
+                    SUM(CASE WHEN EXTRACT(EPOCH FROM (last_updated - first_seen)) / 86400 < :age
+                             THEN 1 ELSE 0 END) AS faster
+                FROM cases
+                WHERE service_center = :sc
+                  AND category = :cat
+                  AND COALESCE(premium_processing, false) = :pp
+                  AND status ILIKE '%approved%'
+                  AND last_updated > first_seen
+            """), {"age": age_days, "sc": case.service_center, "cat": case.category, "pp": pp}).fetchone()
+            if pct_row and pct_row[0] > 0:
+                percentile_info = {
+                    "percentile": round(pct_row[1] / pct_row[0] * 100, 1),
+                    "sample_size": pct_row[0],
+                }
+
+        # Processing time countdown
+        pt_key = (case.service_center, case.category, pp) if case.service_center and case.category else None
+        processing_info = None
+        if pt_key and age_days is not None:
+            if pp:
+                min_days, max_days = PREMIUM_MIN_DAYS, PREMIUM_MAX_DAYS
+            else:
+                min_days, max_days = PROCESSING_TIMES.get(pt_key, (120, 365))
+            days_until_outside = max_days - age_days
+            processing_info = {
+                "min_days": min_days,
+                "max_days": max_days,
+                "days_until_outside": days_until_outside,
+                "is_outside_normal": days_until_outside < 0,
+                "days_outside": abs(days_until_outside) if days_until_outside < 0 else 0,
+            }
+
         return {
             "receipt_number": case.receipt_number,
             "service_center": case.service_center,
@@ -514,6 +625,8 @@ def get_my_case(receipt_number: str):
                 "approval_rate": round(peer[1] / peer[0] * 100, 1) if peer[0] > 0 else 0,
                 "avg_approval_days": round(float(peer[4]), 1) if peer[4] is not None else None,
             },
+            "percentile_info": percentile_info,
+            "processing_info": processing_info,
         }
     finally:
         db.close()
@@ -606,5 +719,280 @@ def get_scrape_runs():
             }
             for r in runs
         ]
+    finally:
+        db.close()
+
+
+# ---------- Profiles (Crowdsourced Evidence Library) ----------
+
+@app.post("/api/profiles/verify")
+async def verify_receipt_for_profile(body: ReceiptVerify, request: Request):
+    """Verify that a receipt number is a real I-140 case, return a signed token."""
+    receipt = body.receipt_number.upper().strip()
+    if not RECEIPT_RE.match(receipt):
+        raise HTTPException(status_code=400, detail="Invalid receipt number format.")
+
+    category, sc, pp = None, receipt[:3], False
+
+    # Layer 1: try USCIS API
+    try:
+        async with httpx.AsyncClient() as client:
+            token = await token_manager.get_token(client)
+            resp = await client.get(
+                API_URL.format(receipt=receipt),
+                headers={"Authorization": f"Bearer {token}"},
+                timeout=12,
+            )
+        if resp.status_code == 404:
+            raise HTTPException(status_code=404, detail="Receipt number not found in USCIS system.")
+        if resp.status_code == 200:
+            cs = resp.json().get("case_status", {})
+            form_type = cs.get("form_type", "")
+            if "140" not in form_type:
+                raise HTTPException(status_code=400, detail="This is not an I-140 case.")
+            desc = cs.get("current_case_status_desc_en", "").lower()
+            category = "NIW" if any(k in desc or k in form_type.lower()
+                                    for k in ["national interest waiver", "niw", "eb-22", "eb22"]) else "EB-1A"
+            pp = bool(cs.get("premium_processing", False))
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.warning("USCIS API unavailable for profile verify (%s): %s", receipt, e)
+
+    # Layer 2: fall back to local DB
+    if category is None:
+        db = SessionLocal()
+        try:
+            case = db.query(Case).filter(Case.receipt_number == receipt).first()
+            if case:
+                category = case.category or "NIW"
+                sc = case.service_center or receipt[:3]
+                pp = bool(case.premium_processing)
+            else:
+                raise HTTPException(
+                    status_code=503,
+                    detail="USCIS API is currently unavailable and this case isn't in our local database yet. Try again later.",
+                )
+        finally:
+            db.close()
+
+    verify_token = _make_verify_token(receipt, category, sc, pp)
+    return {
+        "verify_token": verify_token,
+        "category": category,
+        "service_center": sc,
+        "premium_processing": pp,
+    }
+
+
+@app.post("/api/profiles/submit")
+async def submit_profile(body: ProfileSubmit, request: Request):
+    ip = request.client.host
+    if not check_rate_limit(ip):
+        raise HTTPException(status_code=429, detail="Too many submissions. Try again in 15 minutes.")
+
+    # Validate and unpack the signed verification token
+    verified = _validate_verify_token(body.verify_token)
+    if not verified:
+        raise HTTPException(status_code=400, detail="Invalid or expired verification token. Please re-verify your receipt number.")
+
+    if body.outcome not in ("approved", "rfe", "pending", "denied"):
+        raise HTTPException(status_code=400, detail="Invalid outcome")
+    if not body.field.strip():
+        raise HTTPException(status_code=400, detail="Field is required")
+
+    ip_hash = hashlib.sha256(ip.encode()).hexdigest()[:16]
+
+    db = SessionLocal()
+    try:
+        profile = UserProfile(
+            category=verified["category"],
+            outcome=body.outcome,
+            service_center=verified["service_center"],
+            premium_processing=verified["premium_processing"],
+            degree=body.degree,
+            field=body.field.strip(),
+            citations=body.citations,
+            publications=body.publications,
+            reviews=body.reviews,
+            patents=body.patents,
+            years_experience=body.years_experience,
+            law_firm=body.law_firm,
+            had_rfe=body.had_rfe,
+            rfe_reason=body.rfe_reason,
+            rfe_response_outcome=body.rfe_response_outcome,
+            ip_hash=ip_hash,
+        )
+        db.add(profile)
+        db.commit()
+        return {"message": "Profile submitted successfully"}
+    finally:
+        db.close()
+
+
+@app.get("/api/profiles")
+def get_profiles(
+    category: str = None,
+    service_center: str = None,
+    degree: str = None,
+):
+    db = SessionLocal()
+    try:
+        q = db.query(UserProfile)
+        if category:       q = q.filter(UserProfile.category == category.upper())
+        if service_center: q = q.filter(UserProfile.service_center == service_center.upper())
+        if degree:         q = q.filter(UserProfile.degree == degree)
+
+        total = q.count()
+        if total == 0:
+            return {"total": 0, "approval_rate": 0, "rfe_rate": 0, "avg_citations": None,
+                    "by_outcome": [], "by_degree": []}
+
+        profiles = q.all()
+
+        approved = sum(1 for p in profiles if p.outcome == "approved")
+        rfe      = sum(1 for p in profiles if p.outcome == "rfe")
+
+        by_outcome_counts: dict = defaultdict(int)
+        for p in profiles:
+            by_outcome_counts[p.outcome] += 1
+
+        by_degree: dict = {}
+        for p in profiles:
+            d = p.degree or "Other"
+            if d not in by_degree:
+                by_degree[d] = {"total": 0, "approved": 0, "rfe": 0, "citations": [], "publications": [], "reviews": []}
+            by_degree[d]["total"] += 1
+            if p.outcome == "approved": by_degree[d]["approved"] += 1
+            if p.outcome == "rfe":      by_degree[d]["rfe"] += 1
+            if p.citations is not None:    by_degree[d]["citations"].append(p.citations)
+            if p.publications is not None: by_degree[d]["publications"].append(p.publications)
+            if p.reviews is not None:      by_degree[d]["reviews"].append(p.reviews)
+
+        by_degree_out = []
+        for deg, v in sorted(by_degree.items(), key=lambda x: -x[1]["total"]):
+            by_degree_out.append({
+                "degree": deg,
+                "total": v["total"],
+                "approval_rate": round(v["approved"] / v["total"] * 100, 1),
+                "rfe_rate": round(v["rfe"] / v["total"] * 100, 1),
+                "avg_citations":    sum(v["citations"]) / len(v["citations"])       if v["citations"]    else None,
+                "avg_publications": sum(v["publications"]) / len(v["publications"]) if v["publications"] else None,
+                "avg_reviews":      sum(v["reviews"]) / len(v["reviews"])           if v["reviews"]      else None,
+            })
+
+        all_cit = [p.citations for p in profiles if p.citations is not None]
+        return {
+            "total": total,
+            "approval_rate": round(approved / total * 100, 1),
+            "rfe_rate": round(rfe / total * 100, 1),
+            "avg_citations": sum(all_cit) / len(all_cit) if all_cit else None,
+            "by_outcome": [
+                {"outcome": k, "count": v, "pct": round(v / total * 100, 1)}
+                for k, v in sorted(by_outcome_counts.items(), key=lambda x: -x[1])
+            ],
+            "by_degree": by_degree_out,
+        }
+    finally:
+        db.close()
+
+
+@app.get("/api/profiles/rfe-analysis")
+def get_rfe_analysis(category: str = None):
+    db = SessionLocal()
+    try:
+        q = db.query(UserProfile).filter(UserProfile.had_rfe == True)  # noqa: E712
+        if category: q = q.filter(UserProfile.category == category.upper())
+
+        rfe_profiles = q.all()
+        total_rfe = len(rfe_profiles)
+        if total_rfe == 0:
+            return {"rfe_profiles": 0, "rfe_response_approval_rate": 0, "by_reason": []}
+
+        resolved = [p for p in rfe_profiles if p.rfe_response_outcome in ("approved", "denied")]
+        approved_after_rfe = sum(1 for p in resolved if p.rfe_response_outcome == "approved")
+        rfe_approval_rate = round(approved_after_rfe / len(resolved) * 100, 1) if resolved else 0
+
+        reason_counts: dict = defaultdict(lambda: {"count": 0, "approved": 0, "resolved": 0})
+        for p in rfe_profiles:
+            reason = p.rfe_reason or "Unspecified"
+            reason_counts[reason]["count"] += 1
+            if p.rfe_response_outcome == "approved": reason_counts[reason]["approved"] += 1
+            if p.rfe_response_outcome in ("approved", "denied"): reason_counts[reason]["resolved"] += 1
+
+        by_reason = [
+            {
+                "reason": r,
+                "count": v["count"],
+                "approval_rate": round(v["approved"] / v["resolved"] * 100, 1) if v["resolved"] else None,
+            }
+            for r, v in sorted(reason_counts.items(), key=lambda x: -x[1]["count"])
+        ]
+
+        return {
+            "rfe_profiles": total_rfe,
+            "rfe_response_approval_rate": rfe_approval_rate,
+            "by_reason": by_reason,
+        }
+    finally:
+        db.close()
+
+
+# ---------- Wave Alerts ----------
+
+@app.get("/api/alerts/waves")
+def get_wave_alerts():
+    from datetime import timedelta
+    db = SessionLocal()
+    try:
+        since = datetime.utcnow() - timedelta(days=7)
+        rows = db.execute(text("""
+            SELECT c.block, COUNT(*) AS recent_approvals
+            FROM case_status_history csh
+            JOIN cases c ON c.receipt_number = csh.receipt_number
+            WHERE csh.recorded_at >= :since
+              AND csh.status ILIKE '%approved%'
+              AND c.block IS NOT NULL
+            GROUP BY c.block
+            HAVING COUNT(*) >= 3
+            ORDER BY recent_approvals DESC
+            LIMIT 10
+        """), {"since": since}).fetchall()
+
+        return {
+            "waves": [
+                {"block": r[0], "recent_approvals": r[1]}
+                for r in rows
+            ]
+        }
+    finally:
+        db.close()
+
+
+# ---------- Activity Heatmap ----------
+
+@app.get("/api/analytics/activity")
+def get_activity_heatmap():
+    from datetime import timedelta
+    db = SessionLocal()
+    try:
+        since = datetime.utcnow() - timedelta(days=30)
+        rows = db.execute(text("""
+            SELECT
+                EXTRACT(DOW FROM recorded_at)::int  AS day_of_week,
+                EXTRACT(HOUR FROM recorded_at)::int AS hour,
+                COUNT(*) AS changes
+            FROM case_status_history
+            WHERE recorded_at >= :since
+            GROUP BY day_of_week, hour
+            ORDER BY day_of_week, hour
+        """), {"since": since}).fetchall()
+
+        return {
+            "heatmap": [
+                {"day": r[0], "hour": r[1], "changes": r[2]}
+                for r in rows
+            ]
+        }
     finally:
         db.close()

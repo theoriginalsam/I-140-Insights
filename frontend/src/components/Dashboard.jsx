@@ -1,14 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { API, T, COLORS, statusColor, StatCard, Panel, Badge, Btn } from "./shared";
 
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
 export default function Dashboard() {
   const [stats, setStats]       = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [runs, setRuns]         = useState([]);
+  const [waves, setWaves]       = useState([]);
+  const [heatmap, setHeatmap]   = useState([]);
   const [ppToggle, setPpToggle] = useState(null);
   const [scraping, setScraping]         = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
@@ -22,7 +26,13 @@ export default function Dashboard() {
       fetch(`${API}/api/stats`).then(r => r.json()),
       fetch(`${API}/api/analytics`).then(r => r.json()),
       fetch(`${API}/api/scrape/runs`).then(r => r.json()),
-    ]).then(([s, a, ru]) => { setStats(s); setAnalytics(a); setRuns(ru); });
+      fetch(`${API}/api/alerts/waves`).then(r => r.json()),
+      fetch(`${API}/api/analytics/activity`).then(r => r.json()),
+    ]).then(([s, a, ru, w, act]) => {
+      setStats(s); setAnalytics(a); setRuns(ru);
+      setWaves(w.waves ?? []);
+      setHeatmap(act.heatmap ?? []);
+    });
 
     const iv = setInterval(() =>
       fetch(`${API}/api/stats`).then(r => r.json()).then(setStats), 30000);
@@ -38,19 +48,29 @@ export default function Dashboard() {
         headers: { "X-Admin-Key": adminKey },
       });
       if (resp.status === 401) {
+        // Maybe they just want to view health, not trigger a scrape yet —
+        // but wrong key either way
         setAdminError("Incorrect admin key.");
         return;
       }
-      setSavedKey(adminKey);
+      const key = adminKey;
+      setSavedKey(key);
       setShowAdminModal(false);
       setAdminKey("");
       setTimeout(() => fetch(`${API}/api/scrape/runs`).then(r => r.json()).then(setRuns), 2000);
-      // Fetch health stats now that we have the key
-      fetch(`${API}/api/admin/health`, { headers: { "X-Admin-Key": adminKey } })
+      fetch(`${API}/api/admin/health`, { headers: { "X-Admin-Key": key } })
         .then(r => r.json()).then(setHealth);
     } finally {
       setScraping(false);
     }
+  }
+
+  // Build heatmap grid: indexed by [day][hour]
+  const heatGrid = Array.from({ length: 7 }, () => Array(24).fill(0));
+  let heatMax = 0;
+  for (const cell of heatmap) {
+    heatGrid[cell.day][cell.hour] = cell.changes;
+    if (cell.changes > heatMax) heatMax = cell.changes;
   }
 
   if (!stats) return <div style={{ color: T.textMuted, textAlign: "center", padding: 80, fontSize: 15 }}>Loading…</div>;
@@ -97,9 +117,19 @@ export default function Dashboard() {
             </div>
           )}
         </div>
-        <Btn onClick={() => setShowAdminModal(true)} variant="secondary">
-          Run scraper now
-        </Btn>
+        <div style={{ display: "flex", gap: 8 }}>
+          {savedKey && (
+            <Btn onClick={() =>
+              fetch(`${API}/api/admin/health`, { headers: { "X-Admin-Key": savedKey } })
+                .then(r => r.json()).then(setHealth)
+            } variant="secondary">
+              ↻ Refresh health
+            </Btn>
+          )}
+          <Btn onClick={() => setShowAdminModal(true)} variant="secondary">
+            {savedKey ? "Run scraper now" : "🔒 Admin"}
+          </Btn>
+        </div>
 
         {/* Admin modal */}
         {showAdminModal && (
@@ -120,9 +150,22 @@ export default function Dashboard() {
                 style={{ background: T.inputBg, border: `1px solid ${adminError ? COLORS.rfe : T.border}`, borderRadius: 7, padding: "10px 13px", color: T.text, fontSize: 14, outline: "none", width: "100%", marginBottom: 8 }}
               />
               {adminError && <div style={{ color: COLORS.rfe, fontSize: 13, marginBottom: 10 }}>{adminError}</div>}
-              <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+              <div style={{ display: "flex", gap: 10, marginTop: 4, flexWrap: "wrap" }}>
                 <Btn onClick={startScrape} disabled={scraping || !adminKey}>
-                  {scraping ? "Starting…" : "Start scrape"}
+                  {scraping ? "Starting…" : "Run scraper"}
+                </Btn>
+                <Btn onClick={async () => {
+                  // Just load health without triggering scrape
+                  const resp = await fetch(`${API}/api/admin/health`, { headers: { "X-Admin-Key": adminKey } });
+                  if (resp.status === 401) { setAdminError("Incorrect admin key."); return; }
+                  const data = await resp.json();
+                  setSavedKey(adminKey);
+                  setHealth(data);
+                  setShowAdminModal(false);
+                  setAdminKey("");
+                  setAdminError("");
+                }} disabled={!adminKey} variant="secondary">
+                  View health only
                 </Btn>
                 <Btn onClick={() => { setShowAdminModal(false); setAdminKey(""); setAdminError(""); }} variant="secondary">
                   Cancel
@@ -141,6 +184,35 @@ export default function Dashboard() {
         <StatCard label="RFE Issued"    value={stats.rfe}         color={COLORS.rfe} />
         <StatCard label="Denied"        value={stats.denied}      color={COLORS.denied} />
       </div>
+
+      {/* Wave alerts banner */}
+      {waves.length > 0 && (
+        <div style={{
+          background: `${COLORS.approved}0e`,
+          border: `1px solid ${COLORS.approved}44`,
+          borderLeft: `4px solid ${COLORS.approved}`,
+          borderRadius: 10, padding: "14px 20px", marginBottom: 20,
+          display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap",
+        }}>
+          <span style={{ fontSize: 20 }}>Wave</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ color: COLORS.approved, fontWeight: 700, fontSize: 14, marginBottom: 4 }}>
+              Approval waves detected in the last 7 days
+            </div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              {waves.map(w => (
+                <span key={w.block} style={{
+                  background: `${COLORS.approved}18`, border: `1px solid ${COLORS.approved}44`,
+                  borderRadius: 5, padding: "3px 10px", color: COLORS.approved, fontSize: 13, fontWeight: 600,
+                  fontFamily: "'DM Mono', monospace",
+                }}>
+                  Block {w.block} · {w.recent_approvals} approvals
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Row 1 */}
       <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 20, marginBottom: 20 }}>
@@ -330,6 +402,52 @@ export default function Dashboard() {
 
           <div style={{ color: T.textMuted, fontSize: 12 }}>
             Scraper: API primary → browser (patchright CF bypass) on 503. CF cookies persist for 1 hr.
+          </div>
+        </Panel>
+      )}
+
+      {/* Activity heatmap */}
+      {heatmap.length > 0 && (
+        <Panel title="USCIS Activity Heatmap — Status Changes (Last 30 Days)" style={{ marginBottom: 20 }}>
+          <p style={{ color: T.textSub, fontSize: 13, marginBottom: 14 }}>
+            Each cell shows the number of case status changes by day of week and hour (UTC). Darker = more activity.
+          </p>
+          <div style={{ overflowX: "auto" }}>
+            <div style={{ display: "grid", gridTemplateColumns: `56px repeat(24, 1fr)`, gap: 2, minWidth: 600 }}>
+              {/* Header row: hours */}
+              <div />
+              {Array.from({ length: 24 }, (_, h) => (
+                <div key={h} style={{ color: T.textMuted, fontSize: 10, textAlign: "center", paddingBottom: 4 }}>
+                  {h === 0 ? "12a" : h < 12 ? `${h}a` : h === 12 ? "12p" : `${h - 12}p`}
+                </div>
+              ))}
+              {/* Rows: days */}
+              {DAYS.map((day, d) => (
+                <Fragment key={d}>
+                  <div style={{ color: T.textSub, fontSize: 12, display: "flex", alignItems: "center", paddingRight: 8, fontWeight: 500 }}>{day}</div>
+                  {Array.from({ length: 24 }, (_, h) => {
+                    const count = heatGrid[d][h];
+                    const intensity = heatMax > 0 ? count / heatMax : 0;
+                    return (
+                      <div key={`${d}-${h}`} title={`${day} ${h}:00 — ${count} changes`} style={{
+                        height: 18, borderRadius: 3,
+                        background: intensity > 0
+                          ? `rgba(99, 102, 241, ${0.12 + intensity * 0.85})`
+                          : T.border,
+                        cursor: count > 0 ? "pointer" : "default",
+                      }} />
+                    );
+                  })}
+                </Fragment>
+              ))}
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12 }}>
+            <span style={{ color: T.textMuted, fontSize: 12 }}>Less</span>
+            {[0.1, 0.3, 0.55, 0.75, 1].map(i => (
+              <div key={i} style={{ width: 14, height: 14, borderRadius: 3, background: `rgba(99, 102, 241, ${0.12 + i * 0.85})` }} />
+            ))}
+            <span style={{ color: T.textMuted, fontSize: 12 }}>More</span>
           </div>
         </Panel>
       )}

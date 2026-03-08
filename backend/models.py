@@ -31,6 +31,29 @@ class CaseStatusHistory(Base):
     recorded_at = Column(DateTime, default=datetime.utcnow)
 
 
+class UserProfile(Base):
+    __tablename__ = "user_profiles"
+
+    id                   = Column(Integer, primary_key=True, autoincrement=True)
+    category             = Column(String(10), index=True)      # NIW | EB-1A
+    outcome              = Column(String(20), index=True)      # approved | rfe | pending | denied
+    service_center       = Column(String(10), index=True)
+    premium_processing   = Column(Boolean, default=False)
+    degree               = Column(String(50), index=True)      # PhD | Master's | Bachelor's | Other
+    field                = Column(String(100))
+    citations            = Column(Integer, nullable=True)
+    publications         = Column(Integer, nullable=True)
+    reviews              = Column(Integer, nullable=True)
+    patents              = Column(Integer, nullable=True)
+    years_experience     = Column(Integer, nullable=True)
+    law_firm             = Column(String(200), nullable=True)
+    had_rfe              = Column(Boolean, default=False)
+    rfe_reason           = Column(String(200), nullable=True)
+    rfe_response_outcome = Column(String(20), nullable=True)   # approved | denied | pending
+    submitted_at         = Column(DateTime, default=datetime.utcnow)
+    ip_hash              = Column(String(16), nullable=True)   # truncated hash for dedup
+
+
 class ScrapeRun(Base):
     __tablename__ = "scrape_runs"
 
