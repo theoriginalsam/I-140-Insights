@@ -39,4 +39,6 @@ class ScrapeRun(Base):
     finished_at = Column(DateTime, nullable=True)
     cases_checked = Column(Integer, default=0)
     cases_found = Column(Integer, default=0)
+    blocked_count = Column(Integer, default=0)        # 503/429/CF responses
+    successful_requests = Column(Integer, default=0)  # 200 responses
     status = Column(String(20), default="running")  # running, completed, failed

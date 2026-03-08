@@ -20,6 +20,7 @@ services:
       USCIS_CLIENT_SECRET: ${USCIS_CLIENT_SECRET}
       USE_PROD: ${USE_PROD:-false}
       ADMIN_KEY: ${ADMIN_KEY:-changeme123}
+      BROWSER_HEADED: ${BROWSER_HEADED:-false}
     depends_on:
       - db
     volumes:

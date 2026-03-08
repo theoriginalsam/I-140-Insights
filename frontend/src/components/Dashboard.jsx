@@ -10,10 +10,12 @@ export default function Dashboard() {
   const [analytics, setAnalytics] = useState(null);
   const [runs, setRuns]         = useState([]);
   const [ppToggle, setPpToggle] = useState(null);
-  const [scraping, setScraping] = useState(false);
+  const [scraping, setScraping]         = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
-  const [adminKey, setAdminKey] = useState("");
-  const [adminError, setAdminError] = useState("");
+  const [adminKey, setAdminKey]         = useState("");
+  const [adminError, setAdminError]     = useState("");
+  const [health, setHealth]             = useState(null);
+  const [savedKey, setSavedKey]         = useState("");
 
   useEffect(() => {
     Promise.all([
@@ -39,9 +41,13 @@ export default function Dashboard() {
         setAdminError("Incorrect admin key.");
         return;
       }
+      setSavedKey(adminKey);
       setShowAdminModal(false);
       setAdminKey("");
       setTimeout(() => fetch(`${API}/api/scrape/runs`).then(r => r.json()).then(setRuns), 2000);
+      // Fetch health stats now that we have the key
+      fetch(`${API}/api/admin/health`, { headers: { "X-Admin-Key": adminKey } })
+        .then(r => r.json()).then(setHealth);
     } finally {
       setScraping(false);
     }
@@ -264,6 +270,66 @@ export default function Dashboard() {
                 </div>
               </div>
             ))}
+          </div>
+        </Panel>
+      )}
+
+      {/* Admin health panel — visible once admin key is used */}
+      {health && (
+        <Panel title="Admin Health Dashboard" style={{ marginBottom: 20, borderTop: `3px solid ${T.accent}` }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 20 }}>
+            {/* Last successful run */}
+            <div style={{ background: T.bg, borderRadius: 8, padding: "16px 18px", border: `1px solid ${T.border}` }}>
+              <div style={{ color: T.textMuted, fontSize: 12, textTransform: "uppercase", fontWeight: 600, marginBottom: 6 }}>Last Successful Run</div>
+              <div style={{ color: health.last_successful_run ? COLORS.approved : COLORS.rfe, fontSize: 14, fontWeight: 600 }}>
+                {health.last_successful_run ? new Date(health.last_successful_run).toLocaleString() : "Never"}
+              </div>
+              <div style={{ color: T.textMuted, fontSize: 12, marginTop: 4 }}>
+                Status: <span style={{ color: health.last_run_status === "completed" ? COLORS.approved : health.last_run_status === "failed" ? COLORS.rfe : COLORS.pending, fontWeight: 600 }}>
+                  {health.last_run_status ?? "—"}
+                </span>
+              </div>
+            </div>
+
+            {/* Status changes 24h */}
+            <div style={{ background: T.bg, borderRadius: 8, padding: "16px 18px", border: `1px solid ${T.border}` }}>
+              <div style={{ color: T.textMuted, fontSize: 12, textTransform: "uppercase", fontWeight: 600, marginBottom: 6 }}>Status Changes (24h)</div>
+              <div style={{ color: T.accent, fontSize: 28, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>
+                {health.status_changes_24h}
+              </div>
+              <div style={{ color: T.textMuted, fontSize: 12, marginTop: 4 }}>
+                Runs: {health.runs_24h.completed} ok · {health.runs_24h.failed} failed · {health.runs_24h.running} running
+              </div>
+            </div>
+
+            {/* Block rate */}
+            <div style={{ background: T.bg, borderRadius: 8, padding: "16px 18px", border: `1px solid ${T.border}` }}>
+              <div style={{ color: T.textMuted, fontSize: 12, textTransform: "uppercase", fontWeight: 600, marginBottom: 6 }}>Last Run Request Stats</div>
+              <div style={{ display: "flex", gap: 16 }}>
+                <div>
+                  <div style={{ color: T.textMuted, fontSize: 11, marginBottom: 2 }}>Successful</div>
+                  <div style={{ color: COLORS.approved, fontSize: 17, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>{health.last_run_stats.successful.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div style={{ color: T.textMuted, fontSize: 11, marginBottom: 2 }}>Blocked</div>
+                  <div style={{ color: COLORS.rfe, fontSize: 17, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>{health.last_run_stats.blocked.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div style={{ color: T.textMuted, fontSize: 11, marginBottom: 2 }}>Block Rate</div>
+                  <div style={{ color: health.last_run_stats.block_rate > 10 ? COLORS.rfe : COLORS.pending, fontSize: 17, fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>
+                    {health.last_run_stats.block_rate}%
+                  </div>
+                </div>
+              </div>
+              {/* Blocked vs successful bar */}
+              <div style={{ marginTop: 10, background: COLORS.rfe + "33", borderRadius: 4, height: 6, overflow: "hidden" }}>
+                <div style={{ width: `${100 - health.last_run_stats.block_rate}%`, height: "100%", background: COLORS.approved, borderRadius: 4 }} />
+              </div>
+            </div>
+          </div>
+
+          <div style={{ color: T.textMuted, fontSize: 12 }}>
+            Scraper: API primary → browser (patchright CF bypass) on 503. CF cookies persist for 1 hr.
           </div>
         </Panel>
       )}

@@ -53,6 +53,8 @@ def _migrate(conn):
         "ALTER TABLE cases ADD COLUMN IF NOT EXISTS law_firm VARCHAR(200)",
         "ALTER TABLE cases ADD COLUMN IF NOT EXISTS user_submitted BOOLEAN DEFAULT FALSE",
         "ALTER TABLE cases ADD COLUMN IF NOT EXISTS block VARCHAR(10)",
+        "ALTER TABLE scrape_runs ADD COLUMN IF NOT EXISTS blocked_count INTEGER DEFAULT 0",
+        "ALTER TABLE scrape_runs ADD COLUMN IF NOT EXISTS successful_requests INTEGER DEFAULT 0",
     ]
     for sql in cols:
         try:
@@ -526,6 +528,59 @@ def require_admin(request: Request):
     key = request.headers.get("X-Admin-Key", "")
     if not key or key != ADMIN_KEY:
         raise HTTPException(status_code=401, detail="Invalid or missing admin key")
+
+
+@app.get("/api/admin/health")
+def get_health(request: Request):
+    require_admin(request)
+    db = SessionLocal()
+    try:
+        from datetime import timedelta
+
+        last_ok = (
+            db.query(ScrapeRun)
+            .filter(ScrapeRun.status == "completed")
+            .order_by(ScrapeRun.started_at.desc())
+            .first()
+        )
+        last_run = db.query(ScrapeRun).order_by(ScrapeRun.started_at.desc()).first()
+
+        since_24h = datetime.utcnow() - timedelta(hours=24)
+        changes_24h = (
+            db.query(CaseStatusHistory)
+            .filter(CaseStatusHistory.recorded_at >= since_24h)
+            .count()
+        )
+
+        runs_24h = (
+            db.query(ScrapeRun)
+            .filter(ScrapeRun.started_at >= since_24h)
+            .all()
+        )
+
+        return {
+            "last_successful_run": last_ok.finished_at.isoformat() if last_ok and last_ok.finished_at else None,
+            "last_run_status": last_run.status if last_run else None,
+            "status_changes_24h": changes_24h,
+            "runs_24h": {
+                "total":     len(runs_24h),
+                "completed": sum(1 for r in runs_24h if r.status == "completed"),
+                "failed":    sum(1 for r in runs_24h if r.status == "failed"),
+                "running":   sum(1 for r in runs_24h if r.status == "running"),
+            },
+            "last_run_stats": {
+                "checked":    last_run.cases_checked if last_run else 0,
+                "found":      last_run.cases_found if last_run else 0,
+                "blocked":    last_run.blocked_count if last_run else 0,
+                "successful": last_run.successful_requests if last_run else 0,
+                "block_rate": (
+                    round(last_run.blocked_count / max(last_run.cases_checked, 1) * 100, 1)
+                    if last_run else 0
+                ),
+            },
+        }
+    finally:
+        db.close()
 
 
 @app.post("/api/scrape/start")
