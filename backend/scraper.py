@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 _NIW_KEYWORDS  = ["national interest waiver", "niw", "eb-22", "eb22"]
 _EB1A_KEYWORDS = ["extraordinary ability", "eb-1a", "eb1a", "alien of extraordinary"]
 
-CONCURRENCY          = 5
-REQUEST_DELAY        = 0.4    # seconds per slot → ~12 req/s
+CONCURRENCY          = 1
+REQUEST_DELAY        = 1.2    # seconds between requests → ~0.8 req/s
 EARLY_STOP_THRESHOLD = 2_000  # consecutive 404s before skipping rest of block
 BATCH_SIZE           = CONCURRENCY * 5
 
@@ -98,8 +98,9 @@ class CaseScraper:
                 return None, "not_found"
 
             if resp.status_code == 429:
-                logger.warning("Rate limited — backing off 30s")
-                await asyncio.sleep(30)
+                retry_after = int(resp.headers.get("Retry-After", 60))
+                logger.warning("Rate limited — backing off %ds", retry_after)
+                await asyncio.sleep(retry_after)
                 return None, "not_found"  # skip, don't trigger browser fallback
 
             if resp.status_code == 503:
