@@ -28,7 +28,8 @@ export default function Privacy() {
       <p style={S.p}>We collect two categories of data:</p>
       <ul style={S.ul}>
         <li style={S.li}><strong>Public case status data</strong> — Receipt numbers, case statuses, and processing dates sourced from the USCIS Case Status API (publicly available information).</li>
-        <li style={S.li}><strong>Voluntarily submitted profile data</strong> — If you choose to submit your profile (degree, field of study, employer type, RFE details), we collect only the information you provide. We do <strong>not</strong> collect your name, contact information, or any directly identifying information.</li>
+        <li style={S.li}><strong>Voluntarily submitted case data</strong> — If you use the "Submit Case" feature, you may submit your I-140 receipt number and current case status. We verify the receipt number against the USCIS API before storing it. We do <strong>not</strong> associate your submission with your name, email, or any identifying information.</li>
+        <li style={S.li}><strong>Voluntarily submitted profile data</strong> — If you choose to submit your profile via the "Evidence" tab (degree, field of study, employer type, RFE details), we collect only the information you provide. We do <strong>not</strong> collect your name, contact information, or any directly identifying information.</li>
       </ul>
       <p style={S.p}>We do <strong>not</strong> collect geolocation data, financial information, medical information, or device identifiers.</p>
 
@@ -37,6 +38,8 @@ export default function Privacy() {
         <li style={S.li}>To display aggregated processing time trends and approval rate statistics.</li>
         <li style={S.li}>To allow applicants to benchmark their profile against anonymized community data.</li>
         <li style={S.li}>To detect processing waves and alert the community to approval spikes.</li>
+        <li style={S.li}>To verify submitted receipt numbers against the USCIS Case Status API to ensure data accuracy.</li>
+        <li style={S.li}>To show case processing timelines when you look up your own case via the "My Case" feature.</li>
       </ul>
       <p style={S.p}>We do <strong>not</strong> use your data for advertising, profiling, or any commercial purpose.</p>
 

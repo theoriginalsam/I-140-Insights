@@ -41,9 +41,16 @@ export default function Terms() {
 
       <h2 style={S.h2}>4. Data You Submit</h2>
       <p style={S.p}>
-        When you voluntarily submit profile data, you grant us a non-exclusive license to store
-        and display that data in anonymized, aggregated form. You retain ownership of your data
-        and may request deletion at any time (see our Privacy Policy).
+        The site offers two voluntary submission features:
+      </p>
+      <ul style={S.ul}>
+        <li style={S.li}><strong>Submit Case</strong> — You may submit your I-140 receipt number and case status. The receipt number is verified against the USCIS Case Status API before being stored. By submitting, you confirm the receipt number belongs to you or that you have authorization to submit it. Submitted case data is displayed publicly in aggregated, anonymized form.</li>
+        <li style={S.li}><strong>Evidence / Profile Submission</strong> — You may optionally submit anonymized profile data (degree, field of study, employer type, RFE details) to help the community benchmark processing trends. No identifying information is collected.</li>
+      </ul>
+      <p style={S.p}>
+        By submitting either form, you grant us a non-exclusive license to store and display
+        that data in anonymized, aggregated form. You retain ownership of your data and may
+        request deletion at any time (see our Privacy Policy).
       </p>
 
       <h2 style={S.h2}>5. No Legal Advice</h2>
