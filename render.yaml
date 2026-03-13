@@ -6,7 +6,6 @@ databases:
 services:
   - type: web
     name: i140tracker-backend
-    plan: free
     runtime: docker
     rootDir: backend
     dockerfilePath: ./Dockerfile
@@ -28,7 +27,6 @@ services:
 
   - type: web
     name: i140tracker-frontend
-    plan: free
     runtime: static
     rootDir: frontend
     buildCommand: npm install && npm run build
