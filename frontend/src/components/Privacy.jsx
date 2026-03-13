@@ -65,7 +65,7 @@ export default function Privacy() {
       <h2 style={S.h2}>6. Your Rights & Data Deletion</h2>
       <p style={S.p}>
         You have the right to request permanent deletion of any data you have submitted.
-        To request deletion, email <strong>privacy@i140tracker.com</strong> with the subject line
+        To request deletion, email <strong>spoudel04@gmail.com</strong> with the subject line
         "Data Deletion Request." We will process your request within <strong>30 days</strong>.
       </p>
       <p style={S.p}>
@@ -92,7 +92,7 @@ export default function Privacy() {
         California residents have the right to know what personal information is collected,
         request deletion of their data, and opt out of sale of personal information.
         We do not sell personal information. To exercise your rights, contact us at
-        <strong> privacy@i140tracker.com</strong>.
+        <strong> spoudel04@gmail.com</strong>.
       </p>
 
       <h2 style={S.h2}>10. Policy Changes</h2>
@@ -104,7 +104,7 @@ export default function Privacy() {
 
       <h2 style={S.h2}>11. Contact</h2>
       <p style={S.p}>
-        Questions about this Privacy Policy? Email us at <strong>privacy@i140tracker.com</strong>.
+        Questions about this Privacy Policy? Email us at <strong>spoudel04@gmail.com</strong>.
       </p>
     </div>
   );

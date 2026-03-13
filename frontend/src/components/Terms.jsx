@@ -88,7 +88,7 @@ export default function Terms() {
       <h2 style={S.h2}>10. Account Closure</h2>
       <p style={S.p}>
         You may close your account and request deletion of all submitted data at any time by
-        emailing <strong>privacy@i140tracker.com</strong>. We will process requests within 30 days.
+        emailing <strong>spoudel04@gmail.com</strong>. We will process requests within 30 days.
       </p>
 
       <h2 style={S.h2}>11. Changes to Terms</h2>
@@ -100,7 +100,7 @@ export default function Terms() {
 
       <h2 style={S.h2}>12. Contact</h2>
       <p style={S.p}>
-        Questions? Email us at <strong>privacy@i140tracker.com</strong>.
+        Questions? Email us at <strong>spoudel04@gmail.com</strong>.
       </p>
     </div>
   );
