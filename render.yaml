@@ -1,7 +1,6 @@
 databases:
   - name: i140tracker-db
     databaseName: i140tracker
-    user: postgres
     plan: free
 
 services:
