@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import Dashboard   from "./components/Dashboard";
 import CasesTable  from "./components/CasesTable";
 import SubmitCase  from "./components/SubmitCase";
@@ -18,8 +19,10 @@ const TABS = [
   { id: "evidence",  label: "Evidence" },
 ];
 
-export default function App() {
-  const [tab, setTab] = useState("dashboard");
+function Layout() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const tab = location.pathname.replace("/", "") || "dashboard";
   const isLegal = tab === "privacy" || tab === "terms";
 
   return (
@@ -40,9 +43,9 @@ export default function App() {
         zIndex: 100,
         boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 9, height: 9, borderRadius: "50%", background: T.accent, boxShadow: `0 0 8px ${T.accent}` }} />
-          <span style={{ fontWeight: 700, fontSize: 17, letterSpacing: "-0.02em", color: T.text }}>I-140 Tracker</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }} onClick={() => navigate("/")} role="button" tabIndex={0} onKeyDown={e => e.key === "Enter" && navigate("/")}>
+          <div style={{ width: 9, height: 9, borderRadius: "50%", background: T.accent, boxShadow: `0 0 8px ${T.accent}`, cursor: "pointer" }} />
+          <span style={{ fontWeight: 700, fontSize: 17, letterSpacing: "-0.02em", color: T.text, cursor: "pointer" }}>I-140 Tracker</span>
           <span style={{ background: T.accentBg, color: T.accent, fontSize: 12, padding: "2px 9px", borderRadius: 5, fontWeight: 600 }}>
             NIW · EB-1A
           </span>
@@ -52,13 +55,13 @@ export default function App() {
           {TABS.map(t => (
             <button
               key={t.id}
-              onClick={() => setTab(t.id)}
+              onClick={() => navigate(t.id === "dashboard" ? "/" : `/${t.id}`)}
               style={{
-                background: tab === t.id ? T.accentBg : "transparent",
+                background: tab === t.id || (t.id === "dashboard" && tab === "dashboard") ? T.accentBg : "transparent",
                 border: "none",
                 borderRadius: 7,
                 padding: "7px 16px",
-                color: tab === t.id ? T.accent : T.textMuted,
+                color: tab === t.id || (t.id === "dashboard" && tab === "dashboard") ? T.accent : T.textMuted,
                 fontSize: 14,
                 fontWeight: tab === t.id ? 600 : 500,
                 cursor: "pointer",
@@ -72,14 +75,16 @@ export default function App() {
       </div>
 
       <div style={{ padding: isLegal ? "0" : "36px 48px", maxWidth: isLegal ? "none" : 1280, margin: "0 auto" }}>
-        {tab === "dashboard" && <Dashboard />}
-        {tab === "cases"     && <CasesTable />}
-        {tab === "submit"    && <SubmitCase />}
-        {tab === "mycase"    && <MyCase />}
-        {tab === "firms"     && <FirmTracker />}
-        {tab === "evidence"  && <Evidence />}
-        {tab === "privacy"   && <Privacy />}
-        {tab === "terms"     && <Terms />}
+        <Routes>
+          <Route path="/"          element={<Dashboard />} />
+          <Route path="/cases"     element={<CasesTable />} />
+          <Route path="/submit"    element={<SubmitCase />} />
+          <Route path="/mycase"    element={<MyCase />} />
+          <Route path="/firms"     element={<FirmTracker />} />
+          <Route path="/evidence"  element={<Evidence />} />
+          <Route path="/privacy"   element={<Privacy />} />
+          <Route path="/terms"     element={<Terms />} />
+        </Routes>
       </div>
 
       {/* Footer */}
@@ -95,14 +100,22 @@ export default function App() {
       }}>
         <span>I-140 Tracker — Community data for NIW & EB-1A applicants</span>
         <div style={{ display: "flex", gap: 20 }}>
-          <button onClick={() => setTab("privacy")} style={{ background: "none", border: "none", color: T.textMuted, fontSize: 13, cursor: "pointer", textDecoration: "underline" }}>
+          <button onClick={() => navigate("/privacy")} style={{ background: "none", border: "none", color: T.textMuted, fontSize: 13, cursor: "pointer", textDecoration: "underline" }}>
             Privacy Policy
           </button>
-          <button onClick={() => setTab("terms")} style={{ background: "none", border: "none", color: T.textMuted, fontSize: 13, cursor: "pointer", textDecoration: "underline" }}>
+          <button onClick={() => navigate("/terms")} style={{ background: "none", border: "none", color: T.textMuted, fontSize: 13, cursor: "pointer", textDecoration: "underline" }}>
             Terms of Service
           </button>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Layout />
+    </BrowserRouter>
   );
 }
