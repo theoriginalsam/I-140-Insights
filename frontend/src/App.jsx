@@ -5,6 +5,8 @@ import SubmitCase  from "./components/SubmitCase";
 import MyCase      from "./components/MyCase";
 import FirmTracker from "./components/FirmTracker";
 import Evidence    from "./components/Evidence";
+import Privacy     from "./components/Privacy";
+import Terms       from "./components/Terms";
 import { T } from "./components/shared";
 
 const TABS = [
@@ -18,6 +20,7 @@ const TABS = [
 
 export default function App() {
   const [tab, setTab] = useState("dashboard");
+  const isLegal = tab === "privacy" || tab === "terms";
 
   return (
     <div style={{ minHeight: "100vh", background: T.bg, color: T.text, fontFamily: "'Inter', -apple-system, sans-serif" }}>
@@ -68,13 +71,37 @@ export default function App() {
         </div>
       </div>
 
-      <div style={{ padding: "36px 48px", maxWidth: 1280, margin: "0 auto" }}>
+      <div style={{ padding: isLegal ? "0" : "36px 48px", maxWidth: isLegal ? "none" : 1280, margin: "0 auto" }}>
         {tab === "dashboard" && <Dashboard />}
         {tab === "cases"     && <CasesTable />}
         {tab === "submit"    && <SubmitCase />}
         {tab === "mycase"    && <MyCase />}
         {tab === "firms"     && <FirmTracker />}
         {tab === "evidence"  && <Evidence />}
+        {tab === "privacy"   && <Privacy />}
+        {tab === "terms"     && <Terms />}
+      </div>
+
+      {/* Footer */}
+      <div style={{
+        borderTop: `1px solid ${T.border}`,
+        padding: "20px 48px",
+        marginTop: 60,
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        color: T.textMuted,
+        fontSize: 13,
+      }}>
+        <span>I-140 Tracker — Community data for NIW & EB-1A applicants</span>
+        <div style={{ display: "flex", gap: 20 }}>
+          <button onClick={() => setTab("privacy")} style={{ background: "none", border: "none", color: T.textMuted, fontSize: 13, cursor: "pointer", textDecoration: "underline" }}>
+            Privacy Policy
+          </button>
+          <button onClick={() => setTab("terms")} style={{ background: "none", border: "none", color: T.textMuted, fontSize: 13, cursor: "pointer", textDecoration: "underline" }}>
+            Terms of Service
+          </button>
+        </div>
       </div>
     </div>
   );
