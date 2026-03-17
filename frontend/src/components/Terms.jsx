@@ -18,9 +18,10 @@ export default function Terms() {
 
       <h2 style={S.h2}>1. Acceptance of Terms</h2>
       <p style={S.p}>
-        By using I-140 Tracker ("the site"), you agree to these Terms of Service. If you do not
-        agree, please do not use the site. We may update these terms and will notify users of
-        material changes with a plain-language summary.
+        I-140 Tracker is operated by <strong>Samir Poudel</strong>, an individual sole proprietor
+        based in the state of <strong>Tennessee, USA</strong>. By using I-140 Tracker ("the site"),
+        you agree to these Terms of Service. If you do not agree, please do not use the site.
+        We may update these terms and will notify users of material changes with a plain-language summary.
       </p>
 
       <h2 style={S.h2}>2. Description of Service</h2>

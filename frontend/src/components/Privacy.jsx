@@ -18,10 +18,14 @@ export default function Privacy() {
 
       <h2 style={S.h2}>1. Overview</h2>
       <p style={S.p}>
-        I-140 Tracker ("we", "our", or "the site") is a free, community-driven tool that helps
-        I-140 petition applicants (National Interest Waiver and EB-1A categories) track case
-        processing times and trends. We are committed to protecting your privacy and handling
-        your data transparently.
+        I-140 Tracker is operated by <strong>Samir Poudel</strong>, an individual sole proprietor
+        based in the state of <strong>Tennessee, USA</strong>. References to "we", "our", or "the site"
+        refer to Samir Poudel personally as the responsible party for this service.
+      </p>
+      <p style={S.p}>
+        I-140 Tracker is a free, community-driven tool that helps I-140 petition applicants
+        (National Interest Waiver and EB-1A categories) track case processing times and trends.
+        We are committed to protecting your privacy and handling your data transparently.
       </p>
 
       <h2 style={S.h2}>2. Data We Collect</h2>
