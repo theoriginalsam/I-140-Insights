@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import { API, T, statusColor, Badge, Panel, Input, Select, Btn } from "./shared";
+import { API, T, statusColor, Badge, Panel, Input, Select, Btn, useIsMobile } from "./shared";
 
 const CENTERS = ["", "IOE", "MSC", "EAC", "WAC", "LIN", "SRC", "NBC"];
 const PAGE_SIZE = 50;
 
 export default function CasesTable() {
+  const isMobile = useIsMobile();
   const [cases, setCases]     = useState([]);
   const [total, setTotal]     = useState(0);
   const [page, setPage]       = useState(1);
@@ -48,7 +49,7 @@ export default function CasesTable() {
 
       {/* Filters */}
       <Panel style={{ marginBottom: 20 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 14, marginBottom: 14 }}>
           <div>
             <Label>Service Center</Label>
             <Select value={filters.service_center} onChange={e => setFilters(f => ({ ...f, service_center: e.target.value }))} style={{ width: "100%" }}>
@@ -77,7 +78,7 @@ export default function CasesTable() {
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "160px 1fr 1fr auto auto", gap: 14, alignItems: "end" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "160px 1fr 1fr auto auto", gap: 14, alignItems: "end" }}>
           <div>
             <Label>Receipt Block</Label>
             <Input value={filters.block} onChange={e => setFilters(f => ({ ...f, block: e.target.value.toUpperCase() }))} placeholder="e.g. 24010" />
@@ -101,42 +102,46 @@ export default function CasesTable() {
 
       {/* Table */}
       <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1.5fr 0.7fr 0.65fr 0.65fr 0.55fr 1.8fr 1fr", background: T.bg, padding: "11px 18px", gap: 14, borderBottom: `1px solid ${T.border}` }}>
-          {["Receipt #", "Center", "Category", "Block", "PP", "Status", "Updated"].map(h => (
-            <div key={h} style={{ color: T.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 600 }}>{h}</div>
-          ))}
-        </div>
+        <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+          <div style={{ minWidth: 680 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1.5fr 0.7fr 0.65fr 0.65fr 0.55fr 1.8fr 1fr", background: T.bg, padding: "11px 18px", gap: 14, borderBottom: `1px solid ${T.border}` }}>
+              {["Receipt #", "Center", "Category", "Block", "PP", "Status", "Updated"].map(h => (
+                <div key={h} style={{ color: T.textMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 600 }}>{h}</div>
+              ))}
+            </div>
 
-        {loading && <div style={{ color: T.textMuted, textAlign: "center", padding: 48, fontSize: 15 }}>Loading…</div>}
-        {!loading && cases.length === 0 && (
-          <div style={{ color: T.textMuted, textAlign: "center", padding: 48, fontSize: 15 }}>No cases match the current filters.</div>
-        )}
+            {loading && <div style={{ color: T.textMuted, textAlign: "center", padding: 48, fontSize: 15 }}>Loading…</div>}
+            {!loading && cases.length === 0 && (
+              <div style={{ color: T.textMuted, textAlign: "center", padding: 48, fontSize: 15 }}>No cases match the current filters.</div>
+            )}
 
-        {!loading && cases.map((c, i) => (
-          <div key={c.receipt_number} style={{
-            display: "grid",
-            gridTemplateColumns: "1.5fr 0.7fr 0.65fr 0.65fr 0.55fr 1.8fr 1fr",
-            padding: "12px 18px",
-            gap: 14,
-            borderTop: `1px solid ${T.border}`,
-            alignItems: "center",
-            background: i % 2 === 0 ? T.card : "#fafbfc",
-          }}>
-            <span style={{ fontFamily: "'DM Mono', monospace", color: T.accent, fontSize: 13, fontWeight: 600 }}>{c.receipt_number}</span>
-            <span style={{ color: T.textSub, fontSize: 14 }}>{c.service_center}</span>
-            <Badge text={c.category ?? "—"} color={c.category === "NIW" ? T.accent : "#7c3aed"} />
-            <span style={{ color: T.textMuted, fontFamily: "'DM Mono', monospace", fontSize: 13 }}>{c.block ?? "—"}</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: c.premium_processing ? COLORS_approved : T.textMuted }}>
-              {c.premium_processing ? "PP" : "Std"}
-            </span>
-            <span style={{ color: statusColor(c.status), fontSize: 13, fontWeight: 500 }}>
-              {c.status.length > 38 ? c.status.slice(0, 38) + "…" : c.status}
-            </span>
-            <span style={{ color: T.textMuted, fontSize: 13 }}>
-              {c.last_updated ? new Date(c.last_updated).toLocaleDateString() : "—"}
-            </span>
+            {!loading && cases.map((c, i) => (
+              <div key={c.receipt_number} style={{
+                display: "grid",
+                gridTemplateColumns: "1.5fr 0.7fr 0.65fr 0.65fr 0.55fr 1.8fr 1fr",
+                padding: "12px 18px",
+                gap: 14,
+                borderTop: `1px solid ${T.border}`,
+                alignItems: "center",
+                background: i % 2 === 0 ? T.card : "#fafbfc",
+              }}>
+                <span style={{ fontFamily: "'DM Mono', monospace", color: T.accent, fontSize: 13, fontWeight: 600 }}>{c.receipt_number}</span>
+                <span style={{ color: T.textSub, fontSize: 14 }}>{c.service_center}</span>
+                <Badge text={c.category ?? "—"} color={c.category === "NIW" ? T.accent : "#7c3aed"} />
+                <span style={{ color: T.textMuted, fontFamily: "'DM Mono', monospace", fontSize: 13 }}>{c.block ?? "—"}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: c.premium_processing ? COLORS_approved : T.textMuted }}>
+                  {c.premium_processing ? "PP" : "Std"}
+                </span>
+                <span style={{ color: statusColor(c.status), fontSize: 13, fontWeight: 500 }}>
+                  {c.status.length > 38 ? c.status.slice(0, 38) + "…" : c.status}
+                </span>
+                <span style={{ color: T.textMuted, fontSize: 13 }}>
+                  {c.last_updated ? new Date(c.last_updated).toLocaleDateString() : "—"}
+                </span>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
 
       {totalPages > 1 && (

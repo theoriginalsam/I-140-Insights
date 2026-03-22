@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
-import { T, COLORS, Panel, StatCard, Badge } from "./shared";
+import { T, COLORS, Panel, StatCard, Badge, useIsMobile } from "./shared";
 
 // ── Manually collected from publicly shared success stories (2026 RFE cases) ──
 // 62 cases, Feb 27 – Mar 19 2026
@@ -128,6 +128,7 @@ const tooltipStyle = {
 };
 
 export default function RFEStats() {
+  const isMobile = useIsMobile();
   const [sortKey, setSortKey] = useState("date");
   const [sortDir, setSortDir] = useState("desc");
   const [filterSC, setFilterSC] = useState("All");
@@ -215,13 +216,13 @@ export default function RFEStats() {
       </div>
 
       {/* Charts row 1 */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 20, marginBottom: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.4fr 1fr", gap: 20, marginBottom: 20 }}>
         <Panel title="Transfer Routes">
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={routeChartData} layout="vertical">
               <XAxis type="number" tick={{ fill: T.textMuted, fontSize: 11 }} />
-              <YAxis type="category" dataKey="route" width={130}
-                tick={{ fill: T.textSub, fontSize: 11, fontFamily: "'DM Mono', monospace" }} />
+              <YAxis type="category" dataKey="route" width={isMobile ? 85 : 130}
+                tick={{ fill: T.textSub, fontSize: isMobile ? 10 : 11, fontFamily: "'DM Mono', monospace" }} />
               <Tooltip {...tooltipStyle} />
               <Bar dataKey="count" radius={[0, 5, 5, 0]}>
                 {routeChartData.map((e, i) => (
@@ -249,7 +250,7 @@ export default function RFEStats() {
       </div>
 
       {/* Charts row 2 */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20, marginBottom: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", gap: 20, marginBottom: 20 }}>
         <Panel title="Final Service Center">
           {scCounts.map(([sc, n]) => (
             <MiniBar key={sc} label={sc} n={n} total={total} color={SC_COLORS[sc] ?? "#6b7280"} />
@@ -270,7 +271,7 @@ export default function RFEStats() {
       </div>
 
       {/* Charts row 3 */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 20, marginBottom: 24 }}>
         <Panel title="Top Research Fields">
           {fieldCounts.slice(0, 8).map(([f, n]) => (
             <MiniBar key={f} label={f} n={n} total={total} color={COLORS.approved} />
@@ -278,7 +279,7 @@ export default function RFEStats() {
         </Panel>
 
         <Panel title="Officer Codes (known)">
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "0 16px" }}>
             {officerCounts.slice(0, 10).map(([o, n]) => (
               <div key={o} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: `1px solid ${T.border}`, fontSize: 13 }}>
                 <span style={{ fontFamily: "'DM Mono', monospace", color: T.text, fontWeight: 600 }}>{o}</span>

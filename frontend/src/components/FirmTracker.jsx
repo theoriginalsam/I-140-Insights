@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { API, T, COLORS, Panel } from "./shared";
+import { API, T, COLORS, Panel, useIsMobile } from "./shared";
 
 export default function FirmTracker() {
+  const isMobile = useIsMobile();
   const [firms, setFirms]   = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState("total");
@@ -59,7 +60,8 @@ export default function FirmTracker() {
       )}
 
       {!loading && firms.length > 0 && (
-        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <div style={{ overflowX: "auto", overflow: "hidden", borderRadius: 10 }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
@@ -95,6 +97,7 @@ export default function FirmTracker() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

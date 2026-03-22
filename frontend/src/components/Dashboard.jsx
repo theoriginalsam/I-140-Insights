@@ -3,11 +3,12 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
 } from "recharts";
-import { API, T, COLORS, statusColor, StatCard, Panel, Badge, Btn } from "./shared";
+import { API, T, COLORS, statusColor, StatCard, Panel, Badge, Btn, useIsMobile } from "./shared";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function Dashboard() {
+  const isMobile = useIsMobile();
   const [stats, setStats]       = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [runs, setRuns]         = useState([]);
@@ -107,7 +108,7 @@ export default function Dashboard() {
   return (
     <div>
       {/* Header row */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: T.text, marginBottom: 3 }}>Analytics Dashboard</h1>
           {stats.last_updated && (
@@ -215,7 +216,7 @@ export default function Dashboard() {
       )}
 
       {/* Row 1 */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 20, marginBottom: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.6fr 1fr", gap: 20, marginBottom: 20 }}>
         <Panel title="Status Breakdown">
           <ResponsiveContainer width="100%" height={270}>
             <BarChart data={stats.status_breakdown.slice(0, 8)} layout="vertical">
@@ -258,7 +259,7 @@ export default function Dashboard() {
       </div>
 
       {/* Row 2 */}
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 20, marginBottom: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr", gap: 20, marginBottom: 20 }}>
         <Panel title="Median Days to Approval by Service Center">
           <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
             {[{ label: "All", val: null }, { label: "Standard", val: false }, { label: "Premium", val: true }].map(opt => (
@@ -315,7 +316,7 @@ export default function Dashboard() {
       {/* PP comparison */}
       {ppRows.length > 0 && (
         <Panel title="Premium vs Standard Processing" style={{ marginBottom: 20 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16 }}>
             {ppRows.map(r => (
               <div key={String(r.premium_processing)} style={{
                 background: T.bg,
@@ -327,7 +328,7 @@ export default function Dashboard() {
                 <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: r.premium_processing ? COLORS.approved : T.accent }}>
                   {r.premium_processing ? "⚡ Premium Processing" : "Standard Processing"}
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14 }}>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr 1fr 1fr", gap: 14 }}>
                   {[
                     { l: "Total",    v: r.total },
                     { l: "Approved", v: r.approved },
@@ -349,7 +350,7 @@ export default function Dashboard() {
       {/* Admin health panel — visible once admin key is used */}
       {health && (
         <Panel title="Admin Health Dashboard" style={{ marginBottom: 20, borderTop: `3px solid ${T.accent}` }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 16, marginBottom: 20 }}>
             {/* Last successful run */}
             <div style={{ background: T.bg, borderRadius: 8, padding: "16px 18px", border: `1px solid ${T.border}` }}>
               <div style={{ color: T.textMuted, fontSize: 12, textTransform: "uppercase", fontWeight: 600, marginBottom: 6 }}>Last Successful Run</div>

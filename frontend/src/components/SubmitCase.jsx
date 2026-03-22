@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { API, T, COLORS, Panel, Input, Select, Btn } from "./shared";
+import { API, T, COLORS, Panel, Input, Select, Btn, useIsMobile } from "./shared";
 
 const LAW_FIRMS = [
   "Chen Immigration Law Associates",
@@ -17,6 +17,7 @@ const CENTERS = ["IOE", "MSC", "EAC", "WAC", "LIN", "SRC", "NBC"];
 const RECEIPT_RE = /^[A-Z]{3}\d{10}$/;
 
 export default function SubmitCase() {
+  const isMobile = useIsMobile();
   const [form, setForm] = useState({
     receipt_number: "", category: "NIW", priority_date: "",
     premium_processing: false, law_firm: LAW_FIRMS[0], custom_firm: "", service_center: "",
@@ -92,7 +93,7 @@ export default function SubmitCase() {
               )}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 18 }}>
               <div>
                 <Label>Category *</Label>
                 <Select value={form.category} onChange={e => set("category", e.target.value)} style={{ width: "100%" }}>

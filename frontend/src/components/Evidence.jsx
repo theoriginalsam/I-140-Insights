@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { API, T, COLORS, Panel, Badge, Btn, Select, Input } from "./shared";
+import { API, T, COLORS, Panel, Badge, Btn, Select, Input, useIsMobile } from "./shared";
 
 const DEGREES    = ["PhD", "Master's", "Bachelor's", "Other"];
 const CATEGORIES = ["NIW", "EB-1A"];
@@ -15,6 +15,7 @@ const RFE_REASONS = [
 ];
 
 export default function Evidence() {
+  const isMobile = useIsMobile();
   const [profiles, setProfiles]   = useState(null);
   const [rfeData, setRfeData]     = useState(null);
   const [filter, setFilter]       = useState({ category: "", service_center: "", degree: "" });
@@ -145,7 +146,7 @@ export default function Evidence() {
           {p && (
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {/* Summary stats */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 14 }}>
                 {[
                   { l: "Total Profiles", v: p.total,                           color: T.accent },
                   { l: "Approval Rate",  v: `${p.approval_rate}%`,             color: COLORS.approved },
@@ -318,7 +319,7 @@ export default function Evidence() {
               </p>
 
               {/* Locked verified fields */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
                 {[
                   { l: "Category",       v: verified.category },
                   { l: "Service Center", v: verified.service_center },
@@ -332,7 +333,7 @@ export default function Evidence() {
                 ))}
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16 }}>
                 <div>
                   <label style={{ display: "block", color: T.textSub, fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Outcome *</label>
                   <Select value={form.outcome} onChange={e => setForm(f => ({ ...f, outcome: e.target.value }))} style={{ width: "100%" }}>
@@ -353,7 +354,7 @@ export default function Evidence() {
 
               <div style={{ marginTop: 20 }}>
                 <div style={{ color: T.textSub, fontSize: 13, fontWeight: 600, marginBottom: 12 }}>Credentials (optional — helps community benchmarking)</div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(5, 1fr)", gap: 12 }}>
                   {[
                     { key: "citations",        label: "Citations" },
                     { key: "publications",     label: "Publications" },
@@ -384,7 +385,7 @@ export default function Evidence() {
                   <span style={{ color: T.textSub, fontSize: 14, fontWeight: 600 }}>I received an RFE</span>
                 </div>
                 {form.had_rfe && (
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12 }}>
                     <div>
                       <label style={{ display: "block", color: T.textMuted, fontSize: 12, marginBottom: 5 }}>RFE Reason</label>
                       <Select value={form.rfe_reason} onChange={e => setForm(f => ({ ...f, rfe_reason: e.target.value }))} style={{ width: "100%" }}>

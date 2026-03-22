@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { API, T, COLORS, statusColor, Badge, Panel, Input, Btn } from "./shared";
+import { API, T, COLORS, statusColor, Badge, Panel, Input, Btn, useIsMobile } from "./shared";
 
 function fireConfetti() {
   if (typeof window.confetti !== "function") return;
@@ -9,6 +9,7 @@ function fireConfetti() {
 }
 
 export default function MyCase() {
+  const isMobile = useIsMobile();
   const [receipt, setReceipt] = useState("");
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(false);
@@ -73,7 +74,7 @@ export default function MyCase() {
         Look up your case for a full timeline, peer comparison, and personalised insights.
       </p>
 
-      <div style={{ display: "flex", gap: 10, marginBottom: 30 }}>
+      <div style={{ display: "flex", gap: 10, marginBottom: 30, flexWrap: "wrap" }}>
         <Input value={receipt} onChange={e => setReceipt(e.target.value.toUpperCase())}
           onKeyDown={e => e.key === "Enter" && lookup()}
           placeholder="Receipt number (e.g. IOE2512345678)" style={{ maxWidth: 360 }} />
@@ -92,6 +93,7 @@ export default function MyCase() {
               border: `2px solid ${COLORS.approved}55`,
               borderRadius: 12, padding: "20px 24px",
               display: "flex", justifyContent: "space-between", alignItems: "center",
+              flexWrap: "wrap", gap: 12,
             }}>
               <div>
                 <div style={{ fontSize: 22, fontWeight: 700, color: COLORS.approved, marginBottom: 4 }}>
@@ -114,6 +116,7 @@ export default function MyCase() {
               borderLeft: `4px solid ${pi.is_outside_normal ? COLORS.rfe : T.accent}`,
               borderRadius: 10, padding: "16px 20px",
               display: "flex", justifyContent: "space-between", alignItems: "center",
+              flexWrap: "wrap", gap: 12,
             }}>
               <div>
                 <div style={{ color: pi.is_outside_normal ? COLORS.rfe : T.accent, fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
@@ -131,7 +134,7 @@ export default function MyCase() {
                   </div>
                 )}
               </div>
-              <div style={{ flexShrink: 0, marginLeft: 20 }}>
+              <div style={{ flexShrink: 0 }}>
                 <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 36, fontWeight: 700, color: pi.is_outside_normal ? COLORS.rfe : T.accent, lineHeight: 1 }}>
                   {pi.is_outside_normal ? `+${pi.days_outside}` : pi.days_until_outside}
                 </div>
@@ -145,6 +148,7 @@ export default function MyCase() {
             <div style={{
               background: T.card, border: `1px solid ${T.border}`, borderRadius: 10,
               padding: "16px 20px", display: "flex", alignItems: "center", gap: 20,
+              flexWrap: "wrap",
             }}>
               <div style={{
                 width: 70, height: 70, borderRadius: "50%", flexShrink: 0,
@@ -171,7 +175,7 @@ export default function MyCase() {
 
           {/* Case summary */}
           <Panel>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20, flexWrap: "wrap", gap: 8 }}>
               <div>
                 <div style={{ color: T.textMuted, fontSize: 12, textTransform: "uppercase", fontWeight: 600, marginBottom: 5 }}>Receipt Number</div>
                 <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 20, fontWeight: 700, color: T.accent }}>
@@ -188,7 +192,7 @@ export default function MyCase() {
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 18, marginBottom: 20 }}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 18, marginBottom: 20 }}>
               {[
                 { l: "Service Center", v: data.service_center },
                 { l: "Category",       v: data.category ?? "—" },
@@ -258,7 +262,7 @@ export default function MyCase() {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 14 }}>
                 {[
                   { l: "Total in block", v: peer.total,     color: T.accent },
                   { l: "Approved",       v: peer.approved,  color: COLORS.approved },
