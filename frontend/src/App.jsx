@@ -8,6 +8,7 @@ import FirmTracker from "./components/FirmTracker";
 import Evidence    from "./components/Evidence";
 import Privacy     from "./components/Privacy";
 import Terms       from "./components/Terms";
+import RFEStats    from "./components/RFEStats";
 import { T } from "./components/shared";
 
 const TABS = [
@@ -17,6 +18,7 @@ const TABS = [
   { id: "mycase",    label: "My Case" },
   { id: "firms",     label: "Firms" },
   { id: "evidence",  label: "Evidence" },
+  { id: "rfe-stats", label: "RFE Stats" },
 ];
 
 function Layout() {
@@ -84,6 +86,7 @@ function Layout() {
           <Route path="/evidence"  element={<Evidence />} />
           <Route path="/privacy"   element={<Privacy />} />
           <Route path="/terms"     element={<Terms />} />
+          <Route path="/rfe-stats" element={<RFEStats />} />
         </Routes>
       </div>
 
