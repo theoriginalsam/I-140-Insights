@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import Dashboard   from "./components/Dashboard";
 import CasesTable  from "./components/CasesTable";
@@ -14,18 +14,31 @@ import { T } from "./components/shared";
 const TABS = [
   { id: "dashboard", label: "Dashboard" },
   { id: "cases",     label: "Cases" },
-  { id: "submit",    label: "Submit Case" },
+  { id: "submit",    label: "Submit" },
   { id: "mycase",    label: "My Case" },
   { id: "firms",     label: "Firms" },
   { id: "evidence",  label: "Evidence" },
   { id: "rfe-stats", label: "RFE Stats" },
 ];
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  useEffect(() => {
+    const fn = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", fn);
+    return () => window.removeEventListener("resize", fn);
+  }, []);
+  return isMobile;
+}
+
 function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
   const tab = location.pathname.replace("/", "") || "dashboard";
   const isLegal = tab === "privacy" || tab === "terms";
+
+  const px = isMobile ? 16 : 48;
 
   return (
     <div style={{ minHeight: "100vh", background: T.bg, color: T.text, fontFamily: "'Inter', -apple-system, sans-serif" }}>
@@ -35,48 +48,76 @@ function Layout() {
       <div style={{
         background: T.headerBg,
         borderBottom: `1px solid ${T.border}`,
-        padding: "0 48px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        height: 62,
         position: "sticky",
         top: 0,
         zIndex: 100,
         boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }} onClick={() => navigate("/")} role="button" tabIndex={0} onKeyDown={e => e.key === "Enter" && navigate("/")}>
-          <div style={{ width: 9, height: 9, borderRadius: "50%", background: T.accent, boxShadow: `0 0 8px ${T.accent}`, cursor: "pointer" }} />
-          <span style={{ fontWeight: 700, fontSize: 17, letterSpacing: "-0.02em", color: T.text, cursor: "pointer" }}>I-140 Tracker</span>
-          <span style={{ background: T.accentBg, color: T.accent, fontSize: 12, padding: "2px 9px", borderRadius: 5, fontWeight: 600 }}>
-            NIW · EB-1A
-          </span>
+        {/* Top row: logo */}
+        <div style={{
+          padding: `0 ${px}px`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          height: 52,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}
+            onClick={() => navigate("/")} role="button" tabIndex={0}
+            onKeyDown={e => e.key === "Enter" && navigate("/")}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: T.accent, boxShadow: `0 0 8px ${T.accent}`, cursor: "pointer", flexShrink: 0 }} />
+            <span style={{ fontWeight: 700, fontSize: isMobile ? 15 : 17, letterSpacing: "-0.02em", color: T.text, cursor: "pointer", whiteSpace: "nowrap" }}>I-140 Tracker</span>
+            {!isMobile && (
+              <span style={{ background: T.accentBg, color: T.accent, fontSize: 12, padding: "2px 9px", borderRadius: 5, fontWeight: 600 }}>
+                NIW · EB-1A
+              </span>
+            )}
+          </div>
         </div>
 
-        <div style={{ display: "flex", gap: 4 }}>
-          {TABS.map(t => (
-            <button
-              key={t.id}
-              onClick={() => navigate(t.id === "dashboard" ? "/" : `/${t.id}`)}
-              style={{
-                background: tab === t.id || (t.id === "dashboard" && tab === "dashboard") ? T.accentBg : "transparent",
-                border: "none",
-                borderRadius: 7,
-                padding: "7px 16px",
-                color: tab === t.id || (t.id === "dashboard" && tab === "dashboard") ? T.accent : T.textMuted,
-                fontSize: 14,
-                fontWeight: tab === t.id ? 600 : 500,
-                cursor: "pointer",
-                transition: "all 0.15s",
-              }}
-            >
-              {t.label}
-            </button>
-          ))}
+        {/* Nav tabs — horizontally scrollable on mobile */}
+        <div style={{
+          overflowX: "auto",
+          WebkitOverflowScrolling: "touch",
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+          borderTop: `1px solid ${T.border}`,
+          display: "flex",
+          padding: `0 ${px}px`,
+          gap: 2,
+        }}>
+          {TABS.map(t => {
+            const active = tab === t.id || (t.id === "dashboard" && tab === "dashboard");
+            return (
+              <button
+                key={t.id}
+                onClick={() => navigate(t.id === "dashboard" ? "/" : `/${t.id}`)}
+                style={{
+                  background: active ? T.accentBg : "transparent",
+                  border: "none",
+                  borderBottom: active ? `2px solid ${T.accent}` : "2px solid transparent",
+                  padding: isMobile ? "10px 12px" : "10px 16px",
+                  color: active ? T.accent : T.textMuted,
+                  fontSize: isMobile ? 13 : 14,
+                  fontWeight: active ? 600 : 500,
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
+                }}
+              >
+                {t.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      <div style={{ padding: isLegal ? "0" : "36px 48px", maxWidth: isLegal ? "none" : 1280, margin: "0 auto" }}>
+      {/* Page content */}
+      <div style={{
+        padding: isLegal ? "0" : `${isMobile ? 20 : 36}px ${px}px`,
+        maxWidth: isLegal ? "none" : 1280,
+        margin: "0 auto",
+      }}>
         <Routes>
           <Route path="/"          element={<Dashboard />} />
           <Route path="/cases"     element={<CasesTable />} />
@@ -93,11 +134,13 @@ function Layout() {
       {/* Footer */}
       <div style={{
         borderTop: `1px solid ${T.border}`,
-        padding: "20px 48px",
+        padding: `16px ${px}px`,
         marginTop: 60,
         display: "flex",
+        flexDirection: isMobile ? "column" : "row",
         justifyContent: "space-between",
-        alignItems: "center",
+        alignItems: isMobile ? "flex-start" : "center",
+        gap: isMobile ? 10 : 0,
         color: T.textMuted,
         fontSize: 13,
       }}>
