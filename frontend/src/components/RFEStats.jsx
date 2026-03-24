@@ -147,13 +147,17 @@ export default function RFEStats() {
   const avgPubs  = (CASES.reduce((s, c) => s + c.pubs, 0) / total).toFixed(1);
   const avgCites = Math.round(CASES.reduce((s, c) => s + c.cites, 0) / total);
 
-  const scCounts    = useMemo(() => countBy(CASES, "sc"), []);
-  const typeCounts  = useMemo(() => countBy(CASES, "type"), []);
-  const natCounts   = useMemo(() => countBy(CASES, "nationality"), []);
-  const routeCounts = useMemo(() => countBy(CASES, "route"), []);
-  const ppCounts    = useMemo(() => countBy(CASES, "pp"), []);
-  const fieldCounts = useMemo(() => countBy(CASES, "field"), []);
+  const scCounts      = useMemo(() => countBy(CASES, "sc"), []);
+  const typeCounts    = useMemo(() => countBy(CASES, "type"), []);
+  const natCounts     = useMemo(() => countBy(CASES, "nationality"), []);
+  const routeCounts   = useMemo(() => countBy(CASES, "route"), []);
+  const ppCounts      = useMemo(() => countBy(CASES, "pp"), []);
+  const fieldCounts   = useMemo(() => countBy(CASES, "field"), []);
   const officerCounts = useMemo(() => countBy(CASES.filter(c => c.officer), "officer"), []);
+  // SC that issued the RFE = first SC in the route
+  const rfeIssuingCounts = useMemo(() => countBy(
+    CASES.map(c => ({ ...c, issuingSC: c.route.split("→")[0] })), "issuingSC"
+  ), []);
 
   const topRoute = routeCounts[0];
 
@@ -219,6 +223,27 @@ export default function RFEStats() {
       }}>
         <strong style={{ color: T.text }}>{transferredCount} of {total} cases ({pct(transferredCount, total)}%)</strong> experienced at least one service center transfer.
         {topRoute && <> Most common route: <strong style={{ color: ROUTE_COLORS[topRoute[0]] ?? T.accent, fontFamily: "'DM Mono', monospace" }}>{topRoute[0]}</strong> ({topRoute[1]} cases, {pct(topRoute[1], total)}%).</>}
+        {" "}<span style={{ color: T.textMuted, fontSize: 13 }}>Route format: <span style={{ fontFamily: "'DM Mono', monospace" }}>first SC = RFE issuer · last SC = approving center</span>.</span>
+      </div>
+
+      {/* SC Breakdown: Issued vs Approved */}
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 20, marginBottom: 20 }}>
+        <Panel title="Which SC Issued the RFE?">
+          <p style={{ color: T.textMuted, fontSize: 12, marginBottom: 14 }}>
+            First center in the route — where the RFE notice was sent from
+          </p>
+          {rfeIssuingCounts.map(([sc, n]) => (
+            <MiniBar key={sc} label={sc} n={n} total={total} color={SC_COLORS[sc] ?? "#6b7280"} />
+          ))}
+        </Panel>
+        <Panel title="Which SC Approved the Case?">
+          <p style={{ color: T.textMuted, fontSize: 12, marginBottom: 14 }}>
+            Final center in the route — where the approval notice was issued
+          </p>
+          {scCounts.map(([sc, n]) => (
+            <MiniBar key={sc} label={sc} n={n} total={total} color={SC_COLORS[sc] ?? "#6b7280"} />
+          ))}
+        </Panel>
       </div>
 
       {/* Charts row 1 */}
@@ -257,12 +282,6 @@ export default function RFEStats() {
 
       {/* Charts row 2 */}
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", gap: 20, marginBottom: 20 }}>
-        <Panel title="Final Service Center">
-          {scCounts.map(([sc, n]) => (
-            <MiniBar key={sc} label={sc} n={n} total={total} color={SC_COLORS[sc] ?? "#6b7280"} />
-          ))}
-        </Panel>
-
         <Panel title="Case Type">
           {typeCounts.map(([t, n]) => (
             <MiniBar key={t} label={t} n={n} total={total} color={TYPE_COLORS[t] ?? "#6b7280"} />
