@@ -5,7 +5,7 @@ import {
 import { T, COLORS, Panel, StatCard, Badge, useIsMobile } from "./shared";
 
 // ── Manually collected from publicly shared success stories (2026 RFE cases) ──
-// 62 cases, Feb 27 – Mar 19 2026
+// 63 cases, Feb 27 – Mar 23 2026
 // sc = final deciding SC | route = full transfer path | pp = premium processing type
 const CASES = [
   // Feb 27 — 9 cases
@@ -83,6 +83,8 @@ const CASES = [
   { date: "2026-03-18", sc: "TSC", type: "NIW",   nationality: "China",          premium: true,  officer: "EX5080",  field: "Semiconductors",                  pubs: 19, cites: 537,  route: "TSC→NSC→TSC", pp: "upgrade"  },
   // Mar 19 — 1 case
   { date: "2026-03-19", sc: "TSC", type: "NIW",   nationality: "India",          premium: true,  officer: "XM1685",  field: "Biomedical Engineering",          pubs: 15, cites: 153,  route: "TSC",         pp: "upfront"  },
+  // Mar 23 — 1 case
+  { date: "2026-03-23", sc: "NSC", type: "NIW",   nationality: "Turkey",         premium: false, officer: "EX0178",  field: "Biomedical Science",              pubs: 1,  cites: 20,   route: "NSC",         pp: "none"     },
 ];
 
 const SC_COLORS    = { NSC: "#1e3a5f", TSC: "#0d9488", VSC: "#7c3aed" };
@@ -190,7 +192,7 @@ export default function RFEStats() {
           </span>
         </div>
         <p style={{ color: T.textMuted, fontSize: 14 }}>
-          Manually collected · {total} cases · Feb 27 – Mar 19, 2026 · NIW, EB-1A/B, O-1A
+          Manually collected · {total} cases · Feb 27 – Mar 23, 2026 · NIW, EB-1A/B, O-1A
         </p>
       </div>
 
