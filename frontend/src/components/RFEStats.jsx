@@ -5,7 +5,7 @@ import {
 import { T, COLORS, Panel, StatCard, Badge, useIsMobile } from "./shared";
 
 // ── Manually collected from publicly shared success stories (2026 RFE cases) ──
-// 66 cases, Feb 27 – Mar 24 2026
+// 74 cases, Feb 27 – Mar 25 2026
 // sc = final deciding SC | route = full transfer path | pp = premium processing type
 const CASES = [
   // Feb 27 — 9 cases
@@ -86,12 +86,21 @@ const CASES = [
   // Mar 23 — 1 case
   { date: "2026-03-23", sc: "NSC", type: "NIW",   nationality: "Turkey",         premium: false, officer: "EX0178",  field: "Biomedical Science",              pubs: 1,  cites: 20,   route: "NSC",         pp: "none"     },
   // Mar 24 — 3 cases
-  { date: "2026-03-24", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "XM1771",  field: "Biomedical Engineering",          pubs: 11, cites: 109,  route: "NSC→TSC→NSC", pp: "upgrade"  },
-  { date: "2026-03-24", sc: "NSC", type: "NIW",   nationality: "Italy",          premium: true,  officer: "XM2543",  field: "Chemistry",                       pubs: 10, cites: 60,   route: "NSC→TSC→NSC", pp: "upgrade"  },
-  { date: "2026-03-24", sc: "TSC", type: "NIW",   nationality: "Turkey",         premium: false, officer: "XM2581",  field: "Internal Medicine and Hematology", pubs: 27, cites: 222,  route: "TSC",         pp: "none"     },
+  { date: "2026-03-24", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "XM1771",  field: "Biomedical Engineering",           pubs: 11, cites: 109,  route: "NSC→TSC→NSC", pp: "upgrade"  },
+  { date: "2026-03-24", sc: "NSC", type: "NIW",   nationality: "Italy",          premium: true,  officer: "XM2543",  field: "Chemistry",                        pubs: 10, cites: 60,   route: "NSC→TSC→NSC", pp: "upgrade"  },
+  { date: "2026-03-24", sc: "TSC", type: "NIW",   nationality: "Turkey",         premium: false, officer: "XM2581",  field: "Internal Medicine and Hematology", pubs: 27, cites: 222,  route: "TSC",          pp: "none"     },
+  // Mar 25 — 8 cases
+  { date: "2026-03-25", sc: "NSC", type: "EB-1A", nationality: "China",          premium: true,  officer: "XM1861",  field: "Brain-Computer Interface",         pubs: 16, cites: 1869, route: "NSC",          pp: "upfront"  },
+  { date: "2026-03-25", sc: "NSC", type: "EB-1A", nationality: "India",          premium: true,  officer: "XM1313",  field: "Cardiovascular Disease",           pubs: 72, cites: 530,  route: "NSC→TSC→NSC",  pp: "upgrade"  },
+  { date: "2026-03-25", sc: "NSC", type: "EB-1A", nationality: "China",          premium: true,  officer: "XM2005",  field: "Machine Learning",                 pubs: 12, cites: 1986, route: "NSC→TSC→NSC",  pp: "upfront"  },
+  { date: "2026-03-25", sc: "NSC", type: "NIW",   nationality: "Croatia",        premium: true,  officer: "XM1889",  field: "Molecular Geroscience",            pubs: 10, cites: 376,  route: "NSC→TSC→NSC",  pp: "upfront"  },
+  { date: "2026-03-25", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "",        field: "Mechanical Engineering",           pubs: 24, cites: 134,  route: "NSC→TSC→NSC",  pp: "upgrade"  },
+  { date: "2026-03-25", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "XM2210",  field: "Quantum Field Theory",             pubs: 5,  cites: 128,  route: "NSC→TSC→NSC",  pp: "upgrade"  },
+  { date: "2026-03-25", sc: "NSC", type: "NIW",   nationality: "Turkey",         premium: true,  officer: "XM2229",  field: "Computational Biophysics",         pubs: 3,  cites: 108,  route: "NSC→TSC→NSC",  pp: "upgrade"  },
+  { date: "2026-03-25", sc: "CSC", type: "O-1A",  nationality: "China",          premium: true,  officer: "",        field: "Optoelectronics",                  pubs: 24, cites: 1252, route: "CSC",          pp: "upfront"  },
 ];
 
-const SC_COLORS    = { NSC: "#1e3a5f", TSC: "#0d9488", VSC: "#7c3aed" };
+const SC_COLORS    = { NSC: "#1e3a5f", TSC: "#0d9488", VSC: "#7c3aed", CSC: "#d97706" };
 const TYPE_COLORS  = { NIW: "#6366f1", "EB-1A": "#0d9488", "EB-1B": "#7c3aed", "O-1A": "#d97706" };
 const PP_COLORS    = { upfront: "#1e3a5f", upgrade: "#0d9488", none: "#9ca3af" };
 const ROUTE_COLORS = {
@@ -103,6 +112,7 @@ const ROUTE_COLORS = {
   "TSC→NSC":     "#dc2626",
   "VSC":          "#6b7280",
   "CSC→VSC":      "#9ca3af",
+  "CSC":          "#d97706",
 };
 
 function countBy(arr, key) {
@@ -200,7 +210,7 @@ export default function RFEStats() {
           </span>
         </div>
         <p style={{ color: T.textMuted, fontSize: 14 }}>
-          Manually collected · {total} cases · Feb 27 – Mar 24, 2026 · NIW, EB-1A/B, O-1A
+          Manually collected · {total} cases · Feb 27 – Mar 25, 2026 · NIW, EB-1A/B, O-1A
         </p>
       </div>
 
