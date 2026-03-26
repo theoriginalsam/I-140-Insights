@@ -5,7 +5,7 @@ import {
 import { T, COLORS, Panel, StatCard, Badge, useIsMobile } from "./shared";
 
 // ── Manually collected from publicly shared success stories (2026 RFE cases) ──
-// 74 cases, Feb 27 – Mar 25 2026
+// 78 cases, Feb 27 – Mar 26 2026
 // sc = final deciding SC | route = full transfer path | pp = premium processing type
 const CASES = [
   // Feb 27 — 9 cases
@@ -98,6 +98,11 @@ const CASES = [
   { date: "2026-03-25", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "XM2210",  field: "Quantum Field Theory",             pubs: 5,  cites: 128,  route: "NSC→TSC→NSC",  pp: "upgrade"  },
   { date: "2026-03-25", sc: "NSC", type: "NIW",   nationality: "Turkey",         premium: true,  officer: "XM2229",  field: "Computational Biophysics",         pubs: 3,  cites: 108,  route: "NSC→TSC→NSC",  pp: "upgrade"  },
   { date: "2026-03-25", sc: "CSC", type: "O-1A",  nationality: "China",          premium: true,  officer: "",        field: "Optoelectronics",                  pubs: 24, cites: 1252, route: "CSC",          pp: "upfront"  },
+  // Mar 26 — 4 cases
+  { date: "2026-03-26", sc: "NSC", type: "EB-1A", nationality: "India",          premium: true,  officer: "XM1209",  field: "Health Economics and Outcomes Research", pubs: 19, cites: 199, route: "NSC→TSC→NSC", pp: "upfront"  },
+  { date: "2026-03-26", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "",        field: "Electrical and Computer Engineering",    pubs: 24, cites: 273, route: "NSC",         pp: "upgrade"  },
+  { date: "2026-03-26", sc: "TSC", type: "NIW",   nationality: "China",          premium: true,  officer: "XM2191",  field: "Computer Science",                       pubs: 17, cites: 205, route: "TSC",         pp: "upgrade"  },
+  { date: "2026-03-26", sc: "NSC", type: "NIW",   nationality: "China",          premium: false, officer: "EX0054",  field: "Environmental Science",                  pubs: 12, cites: 97,  route: "NSC",         pp: "none"     },
 ];
 
 const SC_COLORS    = { NSC: "#1e3a5f", TSC: "#0d9488", VSC: "#7c3aed", CSC: "#d97706" };
@@ -210,7 +215,7 @@ export default function RFEStats() {
           </span>
         </div>
         <p style={{ color: T.textMuted, fontSize: 14 }}>
-          Manually collected · {total} cases · Feb 27 – Mar 25, 2026 · NIW, EB-1A/B, O-1A
+          Manually collected · {total} cases · Feb 27 – Mar 26, 2026 · NIW, EB-1A/B, O-1A
         </p>
       </div>
 
