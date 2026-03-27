@@ -5,7 +5,7 @@ import {
 import { T, COLORS, Panel, StatCard, Badge, useIsMobile } from "./shared";
 
 // ── Manually collected from publicly shared success stories (2026 RFE cases) ──
-// 78 cases, Feb 27 – Mar 26 2026
+// 84 cases, Feb 27 – Mar 27 2026
 // sc = final deciding SC | route = full transfer path | pp = premium processing type
 const CASES = [
   // Feb 27 — 9 cases
@@ -103,6 +103,13 @@ const CASES = [
   { date: "2026-03-26", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "",        field: "Electrical and Computer Engineering",    pubs: 24, cites: 273, route: "NSC",         pp: "upgrade"  },
   { date: "2026-03-26", sc: "TSC", type: "NIW",   nationality: "China",          premium: true,  officer: "XM2191",  field: "Computer Science",                       pubs: 17, cites: 205, route: "TSC",         pp: "upgrade"  },
   { date: "2026-03-26", sc: "NSC", type: "NIW",   nationality: "China",          premium: false, officer: "EX0054",  field: "Environmental Science",                  pubs: 12, cites: 97,  route: "NSC",         pp: "none"     },
+  // Mar 27 — 6 cases
+  { date: "2026-03-27", sc: "NSC", type: "EB-1A", nationality: "China",          premium: true,  officer: "EX0150",  field: "Computational Chemistry",                pubs: 34, cites: 761, route: "NSC",         pp: "upfront"  },
+  { date: "2026-03-27", sc: "TSC", type: "NIW",   nationality: "Sri Lanka",      premium: false, officer: "",        field: "Analytical Chemistry",                   pubs: 4,  cites: 30,  route: "TSC",         pp: "none"     },
+  { date: "2026-03-27", sc: "NSC", type: "NIW",   nationality: "Bangladesh",     premium: true,  officer: "EX5177",  field: "Civil and Environmental Engineering",    pubs: 3,  cites: 10,  route: "NSC",         pp: "upgrade"  },
+  { date: "2026-03-27", sc: "NSC", type: "NIW",   nationality: "Algeria",        premium: true,  officer: "XM2055",  field: "Computer Science",                       pubs: 7,  cites: 19,  route: "TSC→NSC",     pp: "upgrade"  },
+  { date: "2026-03-27", sc: "NSC", type: "NIW",   nationality: "Mexico",         premium: true,  officer: "XM1910",  field: "Neuroscience",                           pubs: 27, cites: 441, route: "NSC→TSC→NSC", pp: "upfront"  },
+  { date: "2026-03-27", sc: "NSC", type: "NIW",   nationality: "Hong Kong",      premium: true,  officer: "",        field: "Computer Science",                       pubs: 4,  cites: 54,  route: "NSC",         pp: "upfront"  },
 ];
 
 const SC_COLORS    = { NSC: "#1e3a5f", TSC: "#0d9488", VSC: "#7c3aed", CSC: "#d97706" };
@@ -215,7 +222,7 @@ export default function RFEStats() {
           </span>
         </div>
         <p style={{ color: T.textMuted, fontSize: 14 }}>
-          Manually collected · {total} cases · Feb 27 – Mar 26, 2026 · NIW, EB-1A/B, O-1A
+          Manually collected · {total} cases · Feb 27 – Mar 27, 2026 · NIW, EB-1A/B, O-1A
         </p>
       </div>
 
