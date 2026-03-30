@@ -5,7 +5,7 @@ import {
 import { T, COLORS, Panel, StatCard, Badge, useIsMobile } from "./shared";
 
 // ── Manually collected from publicly shared success stories (2026 RFE cases) ──
-// 84 cases, Feb 27 – Mar 27 2026
+// 87 cases, Feb 27 – Mar 30 2026
 // sc = final deciding SC | route = full transfer path | pp = premium processing type
 const CASES = [
   // Feb 27 — 9 cases
@@ -110,6 +110,10 @@ const CASES = [
   { date: "2026-03-27", sc: "NSC", type: "NIW",   nationality: "Algeria",        premium: true,  officer: "XM2055",  field: "Computer Science",                       pubs: 7,  cites: 19,  route: "TSC→NSC",     pp: "upgrade"  },
   { date: "2026-03-27", sc: "NSC", type: "NIW",   nationality: "Mexico",         premium: true,  officer: "XM1910",  field: "Neuroscience",                           pubs: 27, cites: 441, route: "NSC→TSC→NSC", pp: "upfront"  },
   { date: "2026-03-27", sc: "NSC", type: "NIW",   nationality: "Hong Kong",      premium: true,  officer: "",        field: "Computer Science",                       pubs: 4,  cites: 54,  route: "NSC",         pp: "upfront"  },
+  // Mar 30 — 3 cases
+  { date: "2026-03-30", sc: "TSC", type: "NIW",   nationality: "China",          premium: true,  officer: "XM1963",  field: "Finance",                                pubs: 4,  cites: 14,  route: "TSC",         pp: "upfront"  },
+  { date: "2026-03-30", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "XM1771",  field: "Artificial Intelligence",                pubs: 8,  cites: 278, route: "NSC→TSC→NSC", pp: "upgrade"  },
+  { date: "2026-03-30", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "XM1986",  field: "Biochemistry",                           pubs: 13, cites: 815, route: "NSC→TSC→NSC", pp: "upgrade"  },
 ];
 
 const SC_COLORS    = { NSC: "#1e3a5f", TSC: "#0d9488", VSC: "#7c3aed", CSC: "#d97706" };
@@ -222,7 +226,7 @@ export default function RFEStats() {
           </span>
         </div>
         <p style={{ color: T.textMuted, fontSize: 14 }}>
-          Manually collected · {total} cases · Feb 27 – Mar 27, 2026 · NIW, EB-1A/B, O-1A
+          Manually collected · {total} cases · Feb 27 – Mar 30, 2026 · NIW, EB-1A/B, O-1A
         </p>
       </div>
 
