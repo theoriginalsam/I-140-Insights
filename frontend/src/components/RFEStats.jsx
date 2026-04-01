@@ -5,7 +5,7 @@ import {
 import { T, COLORS, Panel, StatCard, Badge, useIsMobile } from "./shared";
 
 // ── Manually collected from publicly shared success stories (2026 RFE cases) ──
-// 87 cases, Feb 27 – Mar 30 2026
+// 96 cases, Feb 27 – Apr 1 2026
 // sc = final deciding SC | route = full transfer path | pp = premium processing type
 const CASES = [
   // Feb 27 — 9 cases
@@ -114,6 +114,17 @@ const CASES = [
   { date: "2026-03-30", sc: "TSC", type: "NIW",   nationality: "China",          premium: true,  officer: "XM1963",  field: "Finance",                                pubs: 4,  cites: 14,  route: "TSC",         pp: "upfront"  },
   { date: "2026-03-30", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "XM1771",  field: "Artificial Intelligence",                pubs: 8,  cites: 278, route: "NSC→TSC→NSC", pp: "upgrade"  },
   { date: "2026-03-30", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "XM1986",  field: "Biochemistry",                           pubs: 13, cites: 815, route: "NSC→TSC→NSC", pp: "upgrade"  },
+  // Mar 31 — 6 cases
+  { date: "2026-03-31", sc: "TSC", type: "EB-1A", nationality: "China",          premium: true,  officer: "XM2084",  field: "Biomedical Science",                       pubs: 13, cites: 243, route: "NSC→TSC",     pp: "upgrade"  },
+  { date: "2026-03-31", sc: "NSC", type: "EB-1A", nationality: "China",          premium: true,  officer: "",        field: "Condensed Matter Physics and Materials Science", pubs: 18, cites: 247, route: "NSC",    pp: "upfront"  },
+  { date: "2026-03-31", sc: "NSC", type: "EB-1B", nationality: "India",          premium: false, officer: "",        field: "Hearing Science",                          pubs: 11, cites: 90,  route: "NSC",         pp: "none"     },
+  { date: "2026-03-31", sc: "TSC", type: "NIW",   nationality: "China",          premium: true,  officer: "",        field: "Computer Science",                         pubs: 3,  cites: 67,  route: "TSC",         pp: "upgrade"  },
+  { date: "2026-03-31", sc: "NSC", type: "NIW",   nationality: "India",          premium: true,  officer: "XM2265",  field: "Mechanical Engineering",                   pubs: 27, cites: 519, route: "NSC→TSC→NSC", pp: "upgrade"  },
+  { date: "2026-03-31", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "",        field: "Engineering Mechanics",                    pubs: 7,  cites: 341, route: "NSC→TSC→NSC", pp: "upgrade"  },
+  // Apr 1 — 3 cases
+  { date: "2026-04-01", sc: "NSC", type: "EB-1A", nationality: "Brazil",         premium: true,  officer: "XM2254",  field: "Molecular Genetics and Genomics",           pubs: 27, cites: 1685, route: "NSC→TSC→NSC", pp: "upfront" },
+  { date: "2026-04-01", sc: "TSC", type: "NIW",   nationality: "South Korea",    premium: false, officer: "",        field: "Surgical Research",                        pubs: 58, cites: 651, route: "TSC",         pp: "none"     },
+  { date: "2026-04-01", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "EX0054",  field: "Electrical Engineering",                   pubs: 13, cites: 79,  route: "NSC",         pp: "upgrade"  },
 ];
 
 const SC_COLORS    = { NSC: "#1e3a5f", TSC: "#0d9488", VSC: "#7c3aed", CSC: "#d97706" };
@@ -159,36 +170,42 @@ const tooltipStyle = {
   labelStyle: { color: T.textSub },
 };
 
+const TYPE_TABS = ["All", "NIW", "EB-1A", "EB-1B", "O-1A"];
+
 export default function RFEStats() {
   const isMobile = useIsMobile();
   const [sortKey, setSortKey] = useState("date");
   const [sortDir, setSortDir] = useState("desc");
   const [filterSC, setFilterSC] = useState("All");
   const [filterType, setFilterType] = useState("All");
+  const [chartType, setChartType] = useState("NIW");
   const [showAll, setShowAll] = useState(false);
 
-  const total = CASES.length;
-  const premiumCount   = CASES.filter(c => c.premium).length;
-  const transferredCount = CASES.filter(c => c.route.includes("→")).length;
-  const avgPubs  = (CASES.reduce((s, c) => s + c.pubs, 0) / total).toFixed(1);
-  const avgCites = Math.round(CASES.reduce((s, c) => s + c.cites, 0) / total);
+  const baseCases = useMemo(() =>
+    chartType === "All" ? CASES : CASES.filter(c => c.type === chartType),
+  [chartType]);
 
-  const scCounts      = useMemo(() => countBy(CASES, "sc"), []);
-  const typeCounts    = useMemo(() => countBy(CASES, "type"), []);
-  const natCounts     = useMemo(() => countBy(CASES, "nationality"), []);
-  const routeCounts   = useMemo(() => countBy(CASES, "route"), []);
-  const ppCounts      = useMemo(() => countBy(CASES, "pp"), []);
-  const fieldCounts   = useMemo(() => countBy(CASES, "field"), []);
-  const officerCounts = useMemo(() => countBy(CASES.filter(c => c.officer), "officer"), []);
-  // SC that issued the RFE = first SC in the route
+  const total = baseCases.length;
+  const premiumCount     = baseCases.filter(c => c.premium).length;
+  const transferredCount = baseCases.filter(c => c.route.includes("→")).length;
+  const avgPubs  = total ? (baseCases.reduce((s, c) => s + c.pubs, 0) / total).toFixed(1) : "0";
+  const avgCites = total ? Math.round(baseCases.reduce((s, c) => s + c.cites, 0) / total) : 0;
+
+  const scCounts         = useMemo(() => countBy(baseCases, "sc"), [baseCases]);
+  const typeCounts       = useMemo(() => countBy(baseCases, "type"), [baseCases]);
+  const natCounts        = useMemo(() => countBy(baseCases, "nationality"), [baseCases]);
+  const routeCounts      = useMemo(() => countBy(baseCases, "route"), [baseCases]);
+  const ppCounts         = useMemo(() => countBy(baseCases, "pp"), [baseCases]);
+  const fieldCounts      = useMemo(() => countBy(baseCases, "field"), [baseCases]);
+  const officerCounts    = useMemo(() => countBy(baseCases.filter(c => c.officer), "officer"), [baseCases]);
   const rfeIssuingCounts = useMemo(() => countBy(
-    CASES.map(c => ({ ...c, issuingSC: c.route.split("→")[0] })), "issuingSC"
-  ), []);
+    baseCases.map(c => ({ ...c, issuingSC: c.route.split("→")[0] })), "issuingSC"
+  ), [baseCases]);
 
   const topRoute = routeCounts[0];
 
   const filtered = useMemo(() => {
-    let arr = [...CASES];
+    let arr = [...baseCases];
     if (filterSC !== "All")   arr = arr.filter(c => c.sc === filterSC);
     if (filterType !== "All") arr = arr.filter(c => c.type === filterType);
     arr.sort((a, b) => {
@@ -198,7 +215,7 @@ export default function RFEStats() {
       return sortDir === "asc" ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
     });
     return arr;
-  }, [filterSC, filterType, sortKey, sortDir]);
+  }, [baseCases, filterSC, filterType, sortKey, sortDir]);
 
   const displayed = showAll ? filtered : filtered.slice(0, 15);
 
@@ -226,8 +243,24 @@ export default function RFEStats() {
           </span>
         </div>
         <p style={{ color: T.textMuted, fontSize: 14 }}>
-          Manually collected · {total} cases · Feb 27 – Mar 30, 2026 · NIW, EB-1A/B, O-1A
+          Manually collected · {total} {chartType !== "All" ? chartType : ""} cases · Feb 27 – Apr 1, 2026
         </p>
+      </div>
+
+      {/* Type filter tabs */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
+        {TYPE_TABS.map(t => (
+          <button key={t} onClick={() => { setChartType(t); setFilterType("All"); }}
+            style={{
+              padding: "6px 18px", borderRadius: 20, fontSize: 13, fontWeight: 600, cursor: "pointer",
+              border: chartType === t ? "none" : `1px solid ${T.border}`,
+              background: chartType === t ? (TYPE_COLORS[t] ?? T.accent) : T.inputBg,
+              color: chartType === t ? "#fff" : T.textSub,
+              transition: "all 0.15s",
+            }}>
+            {t}
+          </button>
+        ))}
       </div>
 
       {/* KPI cards */}
