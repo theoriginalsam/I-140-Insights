@@ -5,7 +5,7 @@ import {
 import { T, COLORS, Panel, StatCard, Badge, useIsMobile } from "./shared";
 
 // ── Manually collected from publicly shared success stories (2026 RFE cases) ──
-// 96 cases, Feb 27 – Apr 1 2026
+// 102 cases, Feb 27 – Apr 5 2026
 // sc = final deciding SC | route = full transfer path | pp = premium processing type
 const CASES = [
   // Feb 27 — 9 cases
@@ -125,6 +125,13 @@ const CASES = [
   { date: "2026-04-01", sc: "NSC", type: "EB-1A", nationality: "Brazil",         premium: true,  officer: "XM2254",  field: "Molecular Genetics and Genomics",           pubs: 27, cites: 1685, route: "NSC→TSC→NSC", pp: "upfront" },
   { date: "2026-04-01", sc: "TSC", type: "NIW",   nationality: "South Korea",    premium: false, officer: "",        field: "Surgical Research",                        pubs: 58, cites: 651, route: "TSC",         pp: "none"     },
   { date: "2026-04-01", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "EX0054",  field: "Electrical Engineering",                   pubs: 13, cites: 79,  route: "NSC",         pp: "upgrade"  },
+  // Apr 5 — 6 cases
+  { date: "2026-04-05", sc: "NSC", type: "EB-1A", nationality: "China",          premium: true,  officer: "XM1706",  field: "Electrical Engineering",                   pubs: 13, cites: 442, route: "NSC→TSC→NSC", pp: "upgrade"  },
+  { date: "2026-04-05", sc: "TSC", type: "NIW",   nationality: "China",          premium: true,  officer: "",        field: "Transportation Engineering",               pubs: 8,  cites: 84,  route: "TSC",         pp: "upgrade"  },
+  { date: "2026-04-05", sc: "NSC", type: "NIW",   nationality: "Taiwan",         premium: true,  officer: "EX0205",  field: "Computer Science",                         pubs: 6,  cites: 95,  route: "NSC",         pp: "upfront"  },
+  { date: "2026-04-05", sc: "NSC", type: "NIW",   nationality: "Taiwan",         premium: true,  officer: "XM2009",  field: "Bioengineering",                           pubs: 8,  cites: 168, route: "NSC→TSC→NSC", pp: "upgrade"  },
+  { date: "2026-04-05", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "",        field: "Artificial Intelligence",                  pubs: 7,  cites: 256, route: "NSC",         pp: "upgrade"  },
+  { date: "2026-04-05", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "",        field: "Civil Engineering",                        pubs: 11, cites: 160, route: "NSC",         pp: "upgrade"  },
 ];
 
 const SC_COLORS    = { NSC: "#1e3a5f", TSC: "#0d9488", VSC: "#7c3aed", CSC: "#d97706" };
