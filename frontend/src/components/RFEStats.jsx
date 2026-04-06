@@ -5,7 +5,7 @@ import {
 import { T, COLORS, Panel, StatCard, Badge, useIsMobile } from "./shared";
 
 // ── Manually collected from publicly shared success stories (2026 RFE cases) ──
-// 102 cases, Feb 27 – Apr 5 2026
+// 106 cases, Feb 27 – Apr 6 2026
 // sc = final deciding SC | route = full transfer path | pp = premium processing type
 const CASES = [
   // Feb 27 — 9 cases
@@ -132,6 +132,11 @@ const CASES = [
   { date: "2026-04-05", sc: "NSC", type: "NIW",   nationality: "Taiwan",         premium: true,  officer: "XM2009",  field: "Bioengineering",                           pubs: 8,  cites: 168, route: "NSC→TSC→NSC", pp: "upgrade"  },
   { date: "2026-04-05", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "",        field: "Artificial Intelligence",                  pubs: 7,  cites: 256, route: "NSC",         pp: "upgrade"  },
   { date: "2026-04-05", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "",        field: "Civil Engineering",                        pubs: 11, cites: 160, route: "NSC",         pp: "upgrade"  },
+  // Apr 6 — 4 cases
+  { date: "2026-04-06", sc: "TSC", type: "EB-1A", nationality: "Sri Lanka",      premium: true,  officer: "",        field: "Public Health Microbiology",               pubs: 47, cites: 1113, route: "TSC",        pp: "upgrade"  },
+  { date: "2026-04-06", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "XM2556",  field: "Computer Science",                         pubs: 4,  cites: 19,  route: "NSC→TSC→NSC", pp: "upgrade"  },
+  { date: "2026-04-06", sc: "TSC", type: "NIW",   nationality: "China",          premium: true,  officer: "XM1986",  field: "Computational Neuroscience",               pubs: 9,  cites: 207, route: "TSC",         pp: "upgrade"  },
+  { date: "2026-04-06", sc: "NSC", type: "NIW",   nationality: "China",          premium: true,  officer: "EX5209",  field: "Computational Engineering",                pubs: 8,  cites: 153, route: "NSC",         pp: "upgrade"  },
 ];
 
 const SC_COLORS    = { NSC: "#1e3a5f", TSC: "#0d9488", VSC: "#7c3aed", CSC: "#d97706" };
