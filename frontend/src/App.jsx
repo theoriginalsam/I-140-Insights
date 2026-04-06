@@ -8,17 +8,19 @@ import FirmTracker from "./components/FirmTracker";
 import Evidence    from "./components/Evidence";
 import Privacy     from "./components/Privacy";
 import Terms       from "./components/Terms";
-import RFEStats    from "./components/RFEStats";
+import RFEStats      from "./components/RFEStats";
+import ApprovalStats from "./components/ApprovalStats";
 import { T } from "./components/shared";
 
 const TABS = [
-  { id: "dashboard", label: "Dashboard" },
-  { id: "cases",     label: "Cases" },
-  { id: "submit",    label: "Submit" },
-  { id: "mycase",    label: "My Case" },
-  { id: "firms",     label: "Firms" },
-  { id: "evidence",  label: "Evidence" },
-  { id: "rfe-stats", label: "RFE Stats" },
+  { id: "dashboard",      label: "Dashboard" },
+  { id: "cases",          label: "Cases" },
+  { id: "submit",         label: "Submit" },
+  { id: "mycase",         label: "My Case" },
+  { id: "firms",          label: "Firms" },
+  { id: "evidence",       label: "Evidence" },
+  { id: "rfe-stats",      label: "RFE Stats" },
+  { id: "approval-stats", label: "Approval Stats" },
 ];
 
 function useIsMobile() {
@@ -127,7 +129,8 @@ function Layout() {
           <Route path="/evidence"  element={<Evidence />} />
           <Route path="/privacy"   element={<Privacy />} />
           <Route path="/terms"     element={<Terms />} />
-          <Route path="/rfe-stats" element={<RFEStats />} />
+          <Route path="/rfe-stats"      element={<RFEStats />} />
+          <Route path="/approval-stats" element={<ApprovalStats />} />
         </Routes>
       </div>
 
